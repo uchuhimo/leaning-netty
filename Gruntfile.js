@@ -1,9 +1,10 @@
 var path = require("path");
 
 module.exports = function (grunt) {
-    grunt.loadNpmTasks('grunt-gitbook');
-    grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-http-server');
+	grunt.loadNpmTasks('grunt-gitbook');
+	grunt.loadNpmTasks('grunt-gh-pages');
+	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-http-server');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-open');
 
@@ -12,8 +13,15 @@ module.exports = function (grunt) {
             development: {
                 input: "./",
                 title: "Leaning Netty",
-                description: "the records in leaning netty"
+                description: "the records in leaning netty",
+				  github: "skyao/leaning-netty"
             }
+        },
+        'gh-pages': {
+            options: {
+                base: '_book'
+            },
+            src: ['**']
         },
         'clean': {
             files: '_book'
@@ -68,6 +76,7 @@ module.exports = function (grunt) {
     ]);
     grunt.registerTask('publish', [
         'gitbook',
+		'gh-pages',
         'clean'
     ]);
     grunt.registerTask('default', 'gitbook');
