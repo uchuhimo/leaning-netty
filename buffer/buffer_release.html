@@ -5,22 +5,24 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Introduction | Leaning Netty</title>
+        <title>buffer的释放 | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="the records in leaning netty">
+        <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
         <meta name="HandheldFriendly" content="true"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
-        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
-        <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
         
         
     
     
-    <link rel="next" href="./buffer/buffer.html" />
+    <link rel="next" href="../buffer/lack_detection.html" />
     
+    
+    <link rel="prev" href="../buffer/class_AbstractReferenceCountedByteBuf.html" />
     
 
         
@@ -28,11 +30,11 @@
     <body>
         
         
-<link rel="stylesheet" href="gitbook/style.css">
+<link rel="stylesheet" href="../gitbook/style.css">
 
 
         
-    <div class="book" data-level="0" data-basepath="." data-revision="1440660239996">
+    <div class="book" data-level="1.2.3" data-basepath=".." data-revision="1440660239996">
     
 
 <div class="book-summary">
@@ -50,10 +52,10 @@
         
     
         
-        <li class="chapter active" data-level="0" data-path="index.html">
+        <li class="chapter " data-level="0" data-path="index.html">
             
                 
-                    <a href="./index.html">
+                    <a href="../index.html">
                         <i class="fa fa-check"></i>
                         
                          Introduction
@@ -67,7 +69,7 @@
         <li class="chapter " data-level="1" data-path="buffer/buffer.html">
             
                 
-                    <a href="./buffer/buffer.html">
+                    <a href="../buffer/buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.</b>
@@ -84,7 +86,7 @@
         <li class="chapter " data-level="1.1" data-path="buffer/pooled_buffer.html">
             
                 
-                    <a href="./buffer/pooled_buffer.html">
+                    <a href="../buffer/pooled_buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.1.</b>
@@ -100,7 +102,7 @@
         <li class="chapter " data-level="1.2" data-path="buffer/reference_count.html">
             
                 
-                    <a href="./buffer/reference_count.html">
+                    <a href="../buffer/reference_count.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.</b>
@@ -117,7 +119,7 @@
         <li class="chapter " data-level="1.2.1" data-path="buffer/interface_ReferenceCounted.html">
             
                 
-                    <a href="./buffer/interface_ReferenceCounted.html">
+                    <a href="../buffer/interface_ReferenceCounted.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.1.</b>
@@ -133,7 +135,7 @@
         <li class="chapter " data-level="1.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
             
                 
-                    <a href="./buffer/class_AbstractReferenceCountedByteBuf.html">
+                    <a href="../buffer/class_AbstractReferenceCountedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.</b>
@@ -146,10 +148,10 @@
         </li>
     
         
-        <li class="chapter " data-level="1.2.3" data-path="buffer/buffer_release.html">
+        <li class="chapter active" data-level="1.2.3" data-path="buffer/buffer_release.html">
             
                 
-                    <a href="./buffer/buffer_release.html">
+                    <a href="../buffer/buffer_release.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.</b>
@@ -165,7 +167,7 @@
         <li class="chapter " data-level="1.2.4" data-path="buffer/lack_detection.html">
             
                 
-                    <a href="./buffer/lack_detection.html">
+                    <a href="../buffer/lack_detection.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.4.</b>
@@ -186,7 +188,7 @@
         <li class="chapter " data-level="1.3" data-path="buffer/zero_copy.html">
             
                 
-                    <a href="./buffer/zero_copy.html">
+                    <a href="../buffer/zero_copy.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.3.</b>
@@ -202,7 +204,7 @@
         <li class="chapter " data-level="1.4" data-path="buffer/code_analyze.html">
             
                 
-                    <a href="./buffer/code_analyze.html">
+                    <a href="../buffer/code_analyze.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.4.</b>
@@ -300,7 +302,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="./" >Leaning Netty</a>
+        <a href="../" >Leaning Netty</a>
     </h1>
 </div>
 
@@ -308,13 +310,19 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_1">
+                    <section class="normal" id="section-gitbook_5">
                     
-                        <h1 id="leaning-netty">leaning-netty</h1>
-<p>Records during leaning netty.</p>
-<h1 id="netty">Netty学习笔记</h1>
-<p>这是一份个人的学习笔记，用于记录Netty学习过程的各种知识和心得。</p>
-<p>请点击 <a href="http://skyao.github.io/leaning-netty/" target="_blank">这里</a> 查看该笔记的HTML内容.</p>
+                        <p>ReferenceCounted的设计和ByteBuf的实现(AbstractReferenceCountedByteBuf)都不复杂。</p>
+<p>但是对于如何使用ByteBuf, 在使用时候应该调用remain()/release()依然是个非常重要的话题。</p>
+<p>＃　原则</p>
+<p>究竟应该谁，在申明时候来销毁ByteBuf？</p>
+<p><a href="http://netty.io/wiki/reference-counted-objects.html" target="_blank">netty的wiki</a>中给出建议：</p>
+<p><strong> 通常的经验是谁最后访问引用计数对象，谁就负责销毁它</strong></p>
+<p>具体来说是以下两点：</p>
+<ul>
+<li>如果组件A把一个引用计数对象传给另一个组件B，那么组件A通常不需要销毁对象，而是把决定权交给组件B</li>
+<li>如果一个组件不再访问一个引用计数对象，那么这个组件负责销毁它</li>
+</ul>
 
                     
                     </section>
@@ -325,21 +333,23 @@
         </div>
 
         
+        <a href="../buffer/class_AbstractReferenceCountedByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类AbstractReferenceCountedByteBuf代码实现"><i class="fa fa-angle-left"></i></a>
         
-        <a href="./buffer/buffer.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Buffer"><i class="fa fa-angle-right"></i></a>
+        
+        <a href="../buffer/lack_detection.html" class="navigation navigation-next " aria-label="Next page: buffer泄露检测"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
 
         
-<script src="gitbook/app.js"></script>
+<script src="../gitbook/app.js"></script>
 
     
     <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
     
-    <script src="gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
     
 
 <script>

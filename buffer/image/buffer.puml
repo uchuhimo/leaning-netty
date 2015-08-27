@@ -1,0 +1,12 @@
+@startuml
+
+ByteBuf             <|--    EmptyByteBuf
+ByteBuf             <|--    SwappedByteBuf
+ByteBuf             <|--    WrappedByteBuf
+ByteBuf             <|--    AbstractByteBuf
+
+AbstractByteBuf     <|--    AbstractReferenceCountedByteBuf
+AbstractReferenceCountedByteBuf       <|--    PooledByteBuf
+
+
+@enduml
