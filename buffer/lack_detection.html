@@ -19,7 +19,7 @@
         
     
     
-    <link rel="next" href="../buffer/zero_copy.html" />
+    <link rel="next" href="../buffer/class_ResourceLeakDetector.html" />
     
     
     <link rel="prev" href="../buffer/buffer_release.html" />
@@ -34,7 +34,7 @@
 
 
         
-    <div class="book" data-level="1.2.4" data-basepath=".." data-revision="1440660239996">
+    <div class="book" data-level="1.2.4" data-basepath=".." data-revision="1441101751156">
     
 
 <div class="book-summary">
@@ -179,6 +179,22 @@
             
         </li>
     
+        
+        <li class="chapter " data-level="1.2.5" data-path="buffer/class_ResourceLeakDetector.html">
+            
+                
+                    <a href="../buffer/class_ResourceLeakDetector.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.5.</b>
+                        
+                         类ResourceLeakDetector代码实现
+                    </a>
+                
+            
+            
+        </li>
+    
 
             </ul>
             
@@ -310,6 +326,106 @@
                 <div class="page-inner">
                 
                 
+                    <section class="normal" id="section-gitbook_8">
+                    
+                        <p>考虑到buffer释放的复杂性,理论上总是有可能因为某些失误导致有buffer没有正确释放从而发生内存泄露的可能.</p>
+<p>为此netty提供了资源泄露检测机制,在AbstractByteBuf中提供了一个ResourceLeakDetector的实例leakDetector来做资源泄露检测.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractByteBuf</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ByteBuf</span> </span>{
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ResourceLeakDetector&lt;ByteBuf&gt; leakDetector = <span class="hljs-keyword">new</span> ResourceLeakDetector&lt;ByteBuf&gt;(ByteBuf.class);
+}
+</code></pre>
+<h1 id="">工作原理</h1>
+<p>为了检测资源是否泄露,netty中使用了PhantomReference(虚引用)和ReferenceQueue(引用队列).</p>
+<p>工作原理如下:</p>
+<ol>
+<li>根据检测级别和采样率的设置, 在需要时为需要检测的ByteBuf创建PhantomReference</li>
+<li>当JVM回收掉ByteBuf对象时,JVM会将PhantomReference放入ReferenceQueue</li>
+<li>通过对ReferenceQueue中PhantomReference的检查,判断在GC前是否有释放ByteBuf的资源,就可以知道是否有资源释放</li>
+</ol>
+<h1 id="">实现机制</h1>
+<p>理论上, ByteBuf应该做两个事情:</p>
+<ol>
+<li>告之leakDetector需要监控的所有对象
+ 在创建时应该调用leakDetector.open()方法,传入自身(也就是this)的引用.这样leakDetector就可以通过PhantomReference + ReferenceQueue 的机制来监控这些对象.
+ 为了后面能调用close方法,这里需要保存返回的ResourceLeak对象.</li>
+<li>当被监控的对象正常释放时告之leakDetector
+ 在ByteBuf回收时,应该调用ResourceLeak.close()方法来告之.</li>
+</ol>
+<p>以类CompositeByteBuf为例:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CompositeByteBuf</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractReferenceCountedByteBuf</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Iterable</span>&lt;<span class="hljs-title">ByteBuf</span>&gt; </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ResourceLeak leak;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CompositeByteBuf</span><span class="hljs-params">(ByteBufAllocator alloc, <span class="hljs-keyword">boolean</span> direct, <span class="hljs-keyword">int</span> maxNumComponents)</span> </span>{
+        ......
+        leak = leakDetector.open(<span class="hljs-keyword">this</span>);
+    }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">deallocate</span><span class="hljs-params">()</span> </span>{
+    ......
+
+    <span class="hljs-keyword">if</span> (leak != <span class="hljs-keyword">null</span>) {
+        leak.close();
+    }
+}
+</code></pre>
+<h1 id="">代码实现</h1>
+<h2 id="open">open()</h2>
+<p>ResourceLeakDetector的open()方法生成leakDetector对象:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ResourceLeakDetector</span>&lt;<span class="hljs-title">T</span>&gt; </span>{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> ResourceLeak <span class="hljs-title">open</span><span class="hljs-params">(T obj)</span> </span>{
+        ......
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">DefaultResourceLeak</span><span class="hljs-params">(obj)</span></span>;
+    }
+}
+</code></pre>
+<p>这个leakDetector对象实际是一个PhantomReference, 注意构造函数的实现,refQueue是前面所说的ReferenceQueue:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultResourceLeak</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">PhantomReference</span>&lt;<span class="hljs-title">Object</span>&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title">ResourceLeak</span> </span>{
+    DefaultResourceLeak(Object referent) {
+        <span class="hljs-keyword">super</span>(referent, referent != <span class="hljs-keyword">null</span>? refQueue : <span class="hljs-keyword">null</span>);
+    }
+}
+</code></pre>
+<h2 id="close">close()</h2>
+<p>ResourceLeakDetector的close()方法,根据内部的freed属性来判断是否是第一次调用,然后返回true/false:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">close</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">if</span> (freed.compareAndSet(<span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>)) {
+        ......
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+}
+</code></pre>
+<p>判断的基本的原则:</p>
+<ol>
+<li>如果ByteBuf在GC前被正常释放,那么就会正常调用close()方法,这样下一次再调用close时会返回false</li>
+<li>如果ByteBuf被GC前未能正常释放, close()方法没能及时调用,那么再调用close()时会返回true</li>
+</ol>
+<h2 id="reportleak">reportLeak()</h2>
+<p>检测的方式就是从refQueue中获取已经被GC了的DefaultResourceLeak对象,然后按照上面的逻辑调用close()方法做检测:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">reportLeak</span><span class="hljs-params">(Level level)</span> </span>{
+    <span class="hljs-keyword">for</span> (;;) {
+        DefaultResourceLeak ref = (DefaultResourceLeak) refQueue.poll();
+        <span class="hljs-keyword">if</span> (ref == <span class="hljs-keyword">null</span>) {
+            <span class="hljs-keyword">break</span>;
+        }
+
+        ref.clear();
+
+        <span class="hljs-keyword">if</span> (!ref.close()) {
+            <span class="hljs-comment">// 返回false, 说明之前已经调用郭,资源被正常释放</span>
+            <span class="hljs-keyword">continue</span>;
+        }
+
+        <span class="hljs-comment">// 发现泄露了,在这里报错!</span>
+    }
+}
+</code></pre>
+<p>详尽的代码分析,请见下节.</p>
+
+                    
+                    </section>
+                
                 
                 </div>
             </div>
@@ -319,7 +435,7 @@
         <a href="../buffer/buffer_release.html" class="navigation navigation-prev " aria-label="Previous page: buffer的释放"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/zero_copy.html" class="navigation navigation-next " aria-label="Next page: Zero Copy"><i class="fa fa-angle-right"></i></a>
+        <a href="../buffer/class_ResourceLeakDetector.html" class="navigation navigation-next " aria-label="Next page: 类ResourceLeakDetector代码实现"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

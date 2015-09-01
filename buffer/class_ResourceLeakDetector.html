@@ -1,0 +1,776 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
+        <title>类ResourceLeakDetector代码实现 | Leaning Netty</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.5.0">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+        
+        
+    
+    
+    <link rel="next" href="../buffer/zero_copy.html" />
+    
+    
+    <link rel="prev" href="../buffer/lack_detection.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../gitbook/style.css">
+
+
+        
+    <div class="book" data-level="1.2.5" data-basepath=".." data-revision="1441101751156">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Introduction
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="buffer/buffer.html">
+            
+                
+                    <a href="../buffer/buffer.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         Buffer
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.1" data-path="buffer/pooled_buffer.html">
+            
+                
+                    <a href="../buffer/pooled_buffer.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.</b>
+                        
+                         Pooled buffer
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2" data-path="buffer/reference_count.html">
+            
+                
+                    <a href="../buffer/reference_count.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.</b>
+                        
+                         Reference Count
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="1.2.1" data-path="buffer/interface_ReferenceCounted.html">
+            
+                
+                    <a href="../buffer/interface_ReferenceCounted.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.1.</b>
+                        
+                         接口ReferenceCounted
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
+            
+                
+                    <a href="../buffer/class_AbstractReferenceCountedByteBuf.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.2.</b>
+                        
+                         类AbstractReferenceCountedByteBuf代码实现
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.3" data-path="buffer/buffer_release.html">
+            
+                
+                    <a href="../buffer/buffer_release.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.3.</b>
+                        
+                         buffer的释放
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2.4" data-path="buffer/lack_detection.html">
+            
+                
+                    <a href="../buffer/lack_detection.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.4.</b>
+                        
+                         buffer泄露检测
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter active" data-level="1.2.5" data-path="buffer/class_ResourceLeakDetector.html">
+            
+                
+                    <a href="../buffer/class_ResourceLeakDetector.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.5.</b>
+                        
+                         类ResourceLeakDetector代码实现
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.3" data-path="buffer/zero_copy.html">
+            
+                
+                    <a href="../buffer/zero_copy.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.3.</b>
+                        
+                         Zero Copy
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.4" data-path="buffer/code_analyze.html">
+            
+                
+                    <a href="../buffer/code_analyze.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.4.</b>
+                        
+                         代码分析
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../" >Leaning Netty</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_4">
+                    
+                        <p>netty在package util中实现了类ResourceLeakDetector：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">package</span> io.netty.util;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ResourceLeakDetector</span>&lt;<span class="hljs-title">T</span>&gt; </span>{
+</code></pre>
+<h1 id="">基本概念</h1>
+<h2 id="detect-level">Detect Level</h2>
+<p>ResourceLeakDetector.Level定义了资源泄露检测的等级：</p>
+<ul>
+<li>DISABLED： 禁用，不做检测</li>
+<li>SIMPLE： 开启资源泄露检测的简化采样，仅仅报告是否存在泄露，开销小. 这个是默认级别。</li>
+<li>ADVANCED: 开始资源泄露检测的高级采样，报告被泄露的对象最后一次访问的地址，消耗高</li>
+<li>PARANOID： 开始资源泄露检测的偏执采样，报告被泄露的对象最后一次访问的地址，消耗最高(仅适用于测试)</li>
+</ul>
+<p>类ResourceLeakDetector被classloader装载时，会执行下面的静态初始化代码：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String PROP_LEVEL = <span class="hljs-string">"io.netty.leakDetectionLevel"</span>;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Level DEFAULT_LEVEL = Level.SIMPLE;
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Level level;
+
+<span class="hljs-keyword">static</span> {
+    String levelStr = SystemPropertyUtil.get(PROP_LEVEL, DEFAULT_LEVEL.name()).trim().toUpperCase();
+    Level level = DEFAULT_LEVEL;
+    <span class="hljs-keyword">for</span> (Level l: EnumSet.allOf(Level.class)) {
+        <span class="hljs-keyword">if</span> (levelStr.equals(l.name()) || levelStr.equals(String.valueOf(l.ordinal()))) {
+            level = l;
+        }
+    }
+
+    ResourceLeakDetector.level = level;
+    <span class="hljs-keyword">if</span> (logger.isDebugEnabled()) {
+        logger.debug(<span class="hljs-string">"-D{}: {}"</span>, PROP_LEVEL, level.name().toLowerCase());
+    }
+}
+</code></pre>
+<p>读取系统配置io.netty.leakDetectionLevel，如果没有设置或者设置不正确则取默认值 Level.SIMPLE。</p>
+<h2 id="sample-interval">Sample Interval</h2>
+<p>采样间隔在初始化时指定，注意samplingInterval是final，设定后不可修改。</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> samplingInterval;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ResourceLeakDetector</span><span class="hljs-params">(String resourceType, <span class="hljs-keyword">int</span> samplingInterval, <span class="hljs-keyword">long</span> maxActive)</span> </span>{
+    ......
+    <span class="hljs-keyword">this</span>.samplingInterval = samplingInterval;
+}
+</code></pre>
+<p>如果不指定，则取默认值113：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> DEFAULT_SAMPLING_INTERVAL = <span class="hljs-number">113</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ResourceLeakDetector</span><span class="hljs-params">(String resourceType)</span> </span>{
+    <span class="hljs-keyword">this</span>(resourceType, DEFAULT_SAMPLING_INTERVAL, Long.MAX_VALUE);
+}
+</code></pre>
+<p>samplingInterval的使用和leakDetectionLevel直接相关：</p>
+<ul>
+<li>如果leakDetectionLevel被设置为PARANOID，则每次都采样，samplingInterval设置失效</li>
+<li>如果leakDetectionLevel被设置为DISABLED，则禁用采样，samplingInterval设置失效</li>
+<li>当leakDetectionLevel被设置为SIMPLE或者ADVANCED时， samplingInterval设置才生效</li>
+</ul>
+<p>看open()方法中的代码实现，先忽略其他细节，只看level和samplingInterval的部分：</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> ResourceLeak <span class="hljs-title">open</span><span class="hljs-params">(T obj)</span> </span>{
+    Level level = ResourceLeakDetector.level;
+    <span class="hljs-keyword">if</span> (level == Level.DISABLED) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    }
+
+    <span class="hljs-keyword">if</span> (level.ordinal() &lt; Level.PARANOID.ordinal()) {
+        <span class="hljs-keyword">if</span> (leakCheckCnt ++ % samplingInterval == <span class="hljs-number">0</span>) {
+            reportLeak(level);
+            <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">DefaultResourceLeak</span><span class="hljs-params">(obj)</span></span>;
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+    } <span class="hljs-keyword">else</span> {
+        reportLeak(level);
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">DefaultResourceLeak</span><span class="hljs-params">(obj)</span></span>;
+    }
+}
+</code></pre>
+<p>可以看到这里的处理逻辑是：</p>
+<ol>
+<li>当&quot;level == Level.DISABLED&quot; 时，return null表示不采样</li>
+<li>当&quot;level.ordinal() &lt; Level.PARANOID&quot;不成立时，实际就是level等于PARANOID时，每次都取样</li>
+<li>当&quot;level.ordinal() &lt; Level.PARANOID&quot; 时, 则根据当前计数器leakCheckCnt的值对samplingInterval取余数判断是否为0来决定是否取样</li>
+</ol>
+<p>考虑默认情况samplingInterval=113，采样概率为1/113 大概等于9/1000，或者近似于1%.</p>
+<h2 id="leakcheckcnt">leakCheckCnt</h2>
+<p>leakCheckCnt用于计数，配合samplingInterval来判断是否满足取样的条件。</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span> leakCheckCnt;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> ResourceLeak <span class="hljs-title">open</span><span class="hljs-params">(T obj)</span> </span>{
+    <span class="hljs-keyword">if</span> (leakCheckCnt ++ % samplingInterval == <span class="hljs-number">0</span>) {}
+}
+</code></pre>
+<h2 id="resourcetype">resourceType</h2>
+<p>resourceType在构造函数中指定，依然是final设置后不可修改：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String resourceType;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ResourceLeakDetector</span><span class="hljs-params">(String resourceType, <span class="hljs-keyword">int</span> samplingInterval, <span class="hljs-keyword">long</span> maxActive)</span> </span>{
+    <span class="hljs-keyword">if</span> (resourceType == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"resourceType"</span>);
+    }
+    <span class="hljs-keyword">this</span>.resourceType = resourceType;
+}
+</code></pre>
+<p>resourceType可以通过String类型来指定，也可以通过resource类的Class来设置：</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ResourceLeakDetector</span><span class="hljs-params">(Class&lt;?&gt; resourceType)</span> </span>{
+    <span class="hljs-keyword">this</span>(simpleClassName(resourceType));
+}
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ResourceLeakDetector</span><span class="hljs-params">(String resourceType)</span></span>{}
+</code></pre>
+<p>通过Class指定时会通过调用simpleClassName()方法去掉package名而获取简单类名。</p>
+<p>这里貌似有个隐患：如果有两个同名而package不同的resource，会被视为同一个。</p>
+<p>resourceType没有涉及到任何具体的实现逻辑，仅仅是在打印日志的时候作为一个标识符输出。</p>
+<h2 id="active">active</h2>
+<p>和active概念相关的有三个变量：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> maxActive;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span> active;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> AtomicBoolean loggedTooManyActive = <span class="hljs-keyword">new</span> AtomicBoolean();
+</code></pre>
+<ul>
+<li>maxActive： 容许的active最大数量，在初始化时指定，如果不指定则默认为Long.MAX_VALUE</li>
+<li>active：当前active的数量</li>
+<li>loggedTooManyActive： 是否已经打印太多active实例的标识符</li>
+</ul>
+<p>active默认为0，在DefaultResourceLeak构造函数中+1，在close()中-1（细节先忽略）：</p>
+<pre><code class="lang-java">DefaultResourceLeak(Object referent) {
+    ......
+    active ++;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">close</span><span class="hljs-params">()</span> </span>{
+    ......
+    active --;
+}
+</code></pre>
+<p>然后在reportLeak()方法中检测当前active：</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">reportLeak</span><span class="hljs-params">(Level level)</span> </span>{
+    ......
+    <span class="hljs-comment">// Report too many instances.</span>
+    <span class="hljs-keyword">int</span> samplingInterval = level == Level.PARANOID? <span class="hljs-number">1</span> : <span class="hljs-keyword">this</span>.samplingInterval;
+    <span class="hljs-keyword">if</span> (active * samplingInterval &gt; maxActive &amp;&amp; loggedTooManyActive.compareAndSet(<span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>)) {
+        logger.error(<span class="hljs-string">"LEAK: You are creating too many "</span> + resourceType + <span class="hljs-string">" instances.  "</span> +
+                resourceType + <span class="hljs-string">" is a shared resource that must be reused across the JVM,"</span> +
+                <span class="hljs-string">"so that only a few instances are created."</span>);
+    }
+</code></pre>
+<p>如果&quot;active * samplingInterval &gt; maxActive&quot;成立，则以CAS的方式设置loggedTooManyActive为true，如果成功，则打印错误信息，提示当前resourceType类型的资源已经创建了太多的实例。</p>
+<p>注意<strong>这个日志打印的操作只会触发一次</strong>，后续即使满足&quot;active * samplingInterval &gt; maxActive&quot;， loggedTooManyActive因为已经被设置为true了，所以&quot;loggedTooManyActive.compareAndSet(false, true)&quot;必然失败返回false从而if条件不满足。</p>
+<h1 id="">内部辅助类</h1>
+<h2 id="interface-resourceleak">interface ResourceLeak</h2>
+<p>接口ResourceLeak定于在package io.netty.util中。</p>
+<pre><code class="lang-java"><span class="hljs-keyword">package</span> io.netty.util;
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ResourceLeak</span> </span>{}
+</code></pre>
+<p>方法如下：</p>
+<ul>
+<li>void record(Object hint)： 记录调用者当前的stack trace和指定的额外的任意的(arbitrary)信息以便ResourceLeakDetector能告诉说被泄露的资源最后一次访问是在哪里。</li>
+<li>void record()： 等同于record(null)</li>
+<li>boolean close(): 关闭当前leak，这样ResourceLeakDetector就不再担心资源泄露</li>
+</ul>
+<h2 id="class-defaultresourceleak">class DefaultResourceLeak</h2>
+<p>DefaultResourceLeak类实现ResourceLeak接口，继承自PhantomReference：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultResourceLeak</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">PhantomReference</span>&lt;<span class="hljs-title">Object</span>&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title">ResourceLeak</span> </span>{}
+</code></pre>
+<h3 id="creationrecord">creationRecord</h3>
+<p>creationRecord属性用来记录DefaultResourceLeak对象初始化时的记录，只有当<strong>referent不等于null并且level大于或等于Level.ADVANCED时</strong>才做这个记录。</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String creationRecord;
+
+DefaultResourceLeak(Object referent) {
+    ......
+    <span class="hljs-keyword">if</span> (referent != <span class="hljs-keyword">null</span>) {
+        Level level = getLevel();
+        <span class="hljs-keyword">if</span> (level.ordinal() &gt;= Level.ADVANCED.ordinal()) {
+            creationRecord = newRecord(<span class="hljs-keyword">null</span>, <span class="hljs-number">3</span>);
+        } <span class="hljs-keyword">else</span> {
+            creationRecord = <span class="hljs-keyword">null</span>;
+        }
+        ......
+    } <span class="hljs-keyword">else</span> {
+        ......
+        creationRecord = <span class="hljs-keyword">null</span>;
+    }
+}
+</code></pre>
+<p>看newRecord()函数的实现，会发现为了得到stack trace，采用了一个非常规的动作&quot;new Throwable()&quot;:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">static</span> String <span class="hljs-title">newRecord</span><span class="hljs-params">(Object hint, <span class="hljs-keyword">int</span> recordsToSkip)</span> </span>{
+    ......
+    <span class="hljs-comment">// Append the stack trace.</span>
+    StackTraceElement[] array = <span class="hljs-keyword">new</span> Throwable().getStackTrace();
+    <span class="hljs-keyword">for</span> (StackTraceElement e: array) {
+        ......
+    }
+}
+</code></pre>
+<p>在运行时创建Throwable对象是一个开销非常巨大的操作，因此这个操作对性能影响非常巨大。</p>
+<h3 id="lastrecords">lastRecords</h3>
+<p>lastRecords记录最后几次访问记录。初始化为空，之后在record方法被调用时开始记录信息：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Deque&lt;String&gt; lastRecords = <span class="hljs-keyword">new</span> ArrayDeque&lt;String&gt;();
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">record0</span><span class="hljs-params">(Object hint, <span class="hljs-keyword">int</span> recordsToSkip)</span> </span>{
+    <span class="hljs-keyword">if</span> (creationRecord != <span class="hljs-keyword">null</span>) {
+        String value = newRecord(hint, recordsToSkip);
+
+        <span class="hljs-keyword">synchronized</span> (lastRecords) {
+            <span class="hljs-keyword">int</span> size = lastRecords.size();
+            <span class="hljs-keyword">if</span> (size == <span class="hljs-number">0</span> || !lastRecords.getLast().equals(value)) {
+                lastRecords.add(value);
+            }
+            <span class="hljs-keyword">if</span> (size &gt; MAX_RECORDS) {
+                lastRecords.removeFirst();
+            }
+        }
+    }
+}
+</code></pre>
+<p>注意&quot;creationRecord != null&quot;的判断， 考虑creationRecord是final，前面看到creationRecord属性只有当<strong>referent不等于null并且level大于或等于Level.ADVANCED时</strong>才做记录。因此这里lastRecords的记录实际上也是遵循上面的判断条件。</p>
+<p>记录时同样调用newRecord()，里面依然是一次&quot;new Throwable()&quot;的开销。</p>
+<p>MAX_RECORDS限制了最大记录数量，默认时4，看代码中没有能设置的地方，而且也是final，因此次数就被固定为4了：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> MAX_RECORDS = <span class="hljs-number">4</span>;
+</code></pre>
+<h3 id="freed">freed</h3>
+<p>freed在初始化时赋值,如果referent为空,则初始值时true.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> AtomicBoolean freed;
+
+DefaultResourceLeak(Object referent) {
+    ......
+    <span class="hljs-keyword">if</span> (referent != <span class="hljs-keyword">null</span>) {
+        ......
+        freed = <span class="hljs-keyword">new</span> AtomicBoolean();
+    } <span class="hljs-keyword">else</span> {
+        ......
+        freed = <span class="hljs-keyword">new</span> AtomicBoolean(<span class="hljs-keyword">true</span>);
+    }
+}
+</code></pre>
+<p>唯一使用freed属性的地方是close()函数:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">close</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">if</span> (freed.compareAndSet(<span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>)) {
+        ......
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+}
+</code></pre>
+<p>只有当构造函数中referent不为null时, freed的初始值为false,才能让这里的&quot;freed.compareAndSet(false, true)&quot;返回true.</p>
+<h2 id="linked-list-of-active-resources">linked list of active resources</h2>
+<p>DefaultResourceLeak内部有两个引用prev/next, 分别指向上一个和下一个.这样就将所有DefaultResourceLeak都链接起来.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ResourceLeakDetector</span>&lt;<span class="hljs-title">T</span>&gt; </span>{
+    <span class="hljs-javadoc">/** the linked list of active resources */</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> DefaultResourceLeak head = <span class="hljs-keyword">new</span> DefaultResourceLeak(<span class="hljs-keyword">null</span>);
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> DefaultResourceLeak tail = <span class="hljs-keyword">new</span> DefaultResourceLeak(<span class="hljs-keyword">null</span>);
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultResourceLeak</span> </span>{
+        <span class="hljs-keyword">private</span> DefaultResourceLeak prev;
+        <span class="hljs-keyword">private</span> DefaultResourceLeak next;
+    }
+}
+</code></pre>
+<p>而在类ResourceLeakDetector中, 还保存有两个指向active resources 链接列表的头和尾的引用head/tail.在ResourceLeakDetector的构造函数中,将head.next指向tail,将tail.prev指向head:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ResourceLeakDetector</span><span class="hljs-params">(String resourceType, <span class="hljs-keyword">int</span> samplingInterval, <span class="hljs-keyword">long</span> maxActive)</span> </span>{
+    ......
+
+    head.next = tail;
+    tail.prev = head;
+}
+</code></pre>
+<p>在DefaultResourceLeak的构造函数中,如果&quot;referent != null&quot;, 则需要在原来的head和head.next之间插入当前实例:</p>
+<pre><code>&quot;head -- head.next&quot;   &gt;&gt;&gt; &quot;head   -- this -- head.next&quot;
+</code></pre><p>然后需要分别调整head/this/head.next的引用</p>
+<pre><code class="lang-java">DefaultResourceLeak(Object referent) {
+    ......
+
+    <span class="hljs-keyword">if</span> (referent != <span class="hljs-keyword">null</span>) {
+        ......
+        <span class="hljs-keyword">synchronized</span> (head) {
+            prev = head;                <span class="hljs-comment">//将this.prev指向原来的head</span>
+            next = head.next;            <span class="hljs-comment">//将this.next指向原来的head.next</span>
+            head.next.prev = <span class="hljs-keyword">this</span>;        <span class="hljs-comment">//将head.next对象的prev从指向原来的head变成指向this</span>
+            head.next = <span class="hljs-keyword">this</span>;            <span class="hljs-comment">//将head的next指向this</span>
+        }
+        ......
+    } <span class="hljs-keyword">else</span> {
+        ......
+    }
+}
+</code></pre>
+<p>考虑到head和tail只是两个虚拟的引用,其实上面的操作相当于在linked list的最前面增加了一个元素.</p>
+<p>在close()方法中,需要将当前对象从链中摘出来:</p>
+<pre><code>&quot;head   -- this -- head.next&quot;  &gt;&gt;&gt;  &quot;head -- head.next&quot;
+</code></pre><p>代码类似:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">close</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">if</span> (freed.compareAndSet(<span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>)) {
+        <span class="hljs-keyword">synchronized</span> (head) {
+            prev.next = next;            <span class="hljs-comment">//将perv的next从指向this修改为指向this.next</span>
+            next.prev = prev;            <span class="hljs-comment">//将next的prev从指向this修改为指向this.prev</span>
+            prev = <span class="hljs-keyword">null</span>;                <span class="hljs-comment">//清理this.prev</span>
+            next = <span class="hljs-keyword">null</span>;                <span class="hljs-comment">//清理this.next</span>
+        }
+    }
+}
+</code></pre>
+<h1 id="">核心代码</h1>
+<p>完成上面的代码分析之后,我们来看最核心的代码逻辑:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ReferenceQueue&lt;Object&gt; refQueue = <span class="hljs-keyword">new</span> ReferenceQueue&lt;Object&gt;();
+</code></pre>
+<p>这里定义了refQueue作为PhantomReference的ReferenceQueue,还记得DefaultResourceLeak类继承PhantomReference吗?</p>
+<h2 id="resourceleakdetectoropen">ResourceLeakDetector.open()方法</h2>
+<p>open()方法用户创建一个新的ResourceLeak对象, 当相关的资源被回收时期望这个ResourceLeak对象会通过调用close()方法来关闭.</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> ResourceLeak <span class="hljs-title">open</span><span class="hljs-params">(T obj)</span> </span>{
+    Level level = ResourceLeakDetector.level;
+    <span class="hljs-keyword">if</span> (level == Level.DISABLED) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    }
+
+    <span class="hljs-keyword">if</span> (level.ordinal() &lt; Level.PARANOID.ordinal()) {
+        <span class="hljs-keyword">if</span> (leakCheckCnt ++ % samplingInterval == <span class="hljs-number">0</span>) {
+            reportLeak(level);
+            <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">DefaultResourceLeak</span><span class="hljs-params">(obj)</span></span>;
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+    } <span class="hljs-keyword">else</span> {
+        reportLeak(level);
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">DefaultResourceLeak</span><span class="hljs-params">(obj)</span></span>;
+    }
+}
+</code></pre>
+<p>如果满足level和samplingInterval的要求,则开始采样.open()方法就会返回一个DefaultResourceLeak对象,包含传入的需要被监测的资源对象.</p>
+<p>注意&quot;new DefaultResourceLeak(obj)&quot;的调用中, DefaultResourceLeak的构造函数会调用super(也就是PhantomReference)的构造函数,传入要引用的对象和ReferenceQueue:</p>
+<pre><code class="lang-java">DefaultResourceLeak(Object referent) {
+    <span class="hljs-keyword">super</span>(referent, referent != <span class="hljs-keyword">null</span>? refQueue : <span class="hljs-keyword">null</span>);
+    ......
+}
+</code></pre>
+<p>这样就完成了对需要检测的对象的监控,之后如果被检测的引用对象被JVM回收,则PhantomReference会被放入ReferenceQueue(也就是refQueue).</p>
+<h2 id="defaultresourceleakclose">DefaultResourceLeak.close()方法</h2>
+<p>如果close()被正常调用,那么freed.compareAndSet(false, true)就会成立,最后返回true.如果是第二次调用,则会返回false. 因此可以通过调用close()方法然后判断返回值来看是否有资源泄露.</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">close</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">if</span> (freed.compareAndSet(<span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>)) {
+        ......
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+}
+</code></pre>
+<h2 id="resourceleakdetectorreportleak">ResourceLeakDetector.reportLeak()方法</h2>
+<p>在ResourceLeakDetector.open()方法当中, 如果需要采样,则会先调用一次reportLeak()方法来判断之前检测的对象是否有出现资源泄露的情况.</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">reportLeak</span><span class="hljs-params">(Level level)</span> </span>{
+    <span class="hljs-keyword">if</span> (!logger.isErrorEnabled()) {
+        <span class="hljs-keyword">for</span> (;;) {
+            <span class="hljs-annotation">@SuppressWarnings</span>(<span class="hljs-string">"unchecked"</span>)
+            DefaultResourceLeak ref = (DefaultResourceLeak) refQueue.poll();
+            <span class="hljs-keyword">if</span> (ref == <span class="hljs-keyword">null</span>) {
+                <span class="hljs-keyword">break</span>;
+            }
+            ref.close();
+        }
+        <span class="hljs-keyword">return</span>;
+    }
+    ......
+}
+</code></pre>
+<p>这段代码先判断是否容许输出错误日志,如果不被容许,那么也就没有机会输出内存泄露的信息了,所有没有必要做后面的真实检测,直接清理refQueue中的数据.</p>
+<p>如果容许输出错误日志,则继续检测流程. 先判断一下是否当前有太多的实例了, 注意只是实例太多,实例太多不代表一定是内存泄露.但太多超过了maxActive的限制,就应该输出对应的错误信息: </p>
+<pre><code class="lang-java"><span class="hljs-comment">// Report too many instances.</span>
+<span class="hljs-keyword">int</span> samplingInterval = level == Level.PARANOID? <span class="hljs-number">1</span> : <span class="hljs-keyword">this</span>.samplingInterval;
+<span class="hljs-keyword">if</span> (active * samplingInterval &gt; maxActive &amp;&amp; loggedTooManyActive.compareAndSet(<span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>)) {
+    logger.error(<span class="hljs-string">"LEAK: You are creating too many "</span> + resourceType + <span class="hljs-string">" instances.  "</span> +
+            resourceType + <span class="hljs-string">" is a shared resource that must be reused across the JVM,"</span> +
+            <span class="hljs-string">"so that only a few instances are created."</span>);
+}
+</code></pre>
+<p>然后才是最核心的检测代码: 从refQueue中循环poll数据,然后调用ref.close(). 如果返回false,说明之前已经被正常调用一次close(),资源没有泄露.</p>
+<pre><code class="lang-java"><span class="hljs-comment">// Detect and report previous leaks.</span>
+<span class="hljs-keyword">for</span> (;;) {
+    <span class="hljs-annotation">@SuppressWarnings</span>(<span class="hljs-string">"unchecked"</span>)
+    DefaultResourceLeak ref = (DefaultResourceLeak) refQueue.poll();
+    <span class="hljs-keyword">if</span> (ref == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">break</span>;
+    }
+
+    ref.clear();
+
+    <span class="hljs-keyword">if</span> (!ref.close()) {
+        <span class="hljs-keyword">continue</span>;
+    }
+
+    ......
+</code></pre>
+<p>如果ref.close()返回true,则说明之前close()方法没有被调用.这里就需要汇报资源泄露的信息了:</p>
+<pre><code class="lang-java">String records = ref.toString();
+<span class="hljs-keyword">if</span> (reportedLeaks.putIfAbsent(records, Boolean.TRUE) == <span class="hljs-keyword">null</span>) {
+    <span class="hljs-keyword">if</span> (records.isEmpty()) {
+        logger.error(<span class="hljs-string">"LEAK: {}.release() was not called before it's garbage-collected. "</span> +
+                <span class="hljs-string">"Enable advanced leak reporting to find out where the leak occurred. "</span> +
+                <span class="hljs-string">"To enable advanced leak reporting, "</span> +
+                <span class="hljs-string">"specify the JVM option '-D{}={}' or call {}.setLevel() "</span> +
+                <span class="hljs-string">"See http://netty.io/wiki/reference-counted-objects.html for more information."</span>,
+                resourceType, PROP_LEVEL, Level.ADVANCED.name().toLowerCase(), simpleClassName(<span class="hljs-keyword">this</span>));
+    } <span class="hljs-keyword">else</span> {
+        logger.error(
+                <span class="hljs-string">"LEAK: {}.release() was not called before it's garbage-collected. "</span> +
+                <span class="hljs-string">"See http://netty.io/wiki/reference-counted-objects.html for more information.{}"</span>,
+                resourceType, records);
+    }
+}
+</code></pre>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../buffer/lack_detection.html" class="navigation navigation-prev " aria-label="Previous page: buffer泄露检测"><i class="fa fa-angle-left"></i></a>
+        
+        
+        <a href="../buffer/zero_copy.html" class="navigation navigation-next " aria-label="Next page: Zero Copy"><i class="fa fa-angle-right"></i></a>
+        
+    </div>
+</div>
+
+        
+<script src="../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>
