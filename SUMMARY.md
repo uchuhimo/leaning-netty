@@ -7,6 +7,7 @@ bui# Summary
 		* [类AbstractReferenceCountedByteBuf代码实现](buffer/class_AbstractReferenceCountedByteBuf.md)
 		* [buffer的释放](buffer/buffer_release.md)
 		* [buffer泄露检测](buffer/lack_detection.md)
+		* [类ResourceLeakDetector代码实现](buffer/class_ResourceLeakDetector.md)
 	* [Zero Copy](buffer/zero_copy.md)
 	* [代码分析](buffer/code_analyze.md)
 
