@@ -21,8 +21,4 @@ TBD:
 
 - [Netty 4.x学习笔记 – ByteBuf](http://hongweiyi.com/2014/01/netty-4-x-bytebuf/)
 
-以下是 ByteBuf 的几个重要特性,后面详细展开:
 
-- Pooled
-- Reference Count
-- Zero Copy
