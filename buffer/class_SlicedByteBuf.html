@@ -5,7 +5,7 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>buffer的释放 | Leaning Netty</title>
+        <title>类SlicedByteBuf代码实现 | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/lack_detection.html" />
+    <link rel="next" href="../buffer/unpooled_wapped.html" />
     
     
-    <link rel="prev" href="../buffer/class_AbstractReferenceCountedByteBuf.html" />
+    <link rel="prev" href="../buffer/zero_copy.html" />
     
 
         
@@ -34,7 +34,7 @@
 
 
         
-    <div class="book" data-level="1.1.2.3" data-basepath=".." data-revision="1441783119250">
+    <div class="book" data-level="1.1.3.1" data-basepath=".." data-revision="1441783119250">
     
 
 <div class="book-summary">
@@ -165,7 +165,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="1.1.2.3" data-path="buffer/buffer_release.html">
+        <li class="chapter " data-level="1.1.2.3" data-path="buffer/buffer_release.html">
             
                 
                     <a href="../buffer/buffer_release.html">
@@ -235,7 +235,7 @@
                 
     
         
-        <li class="chapter " data-level="1.1.3.1" data-path="buffer/class_SlicedByteBuf.html">
+        <li class="chapter active" data-level="1.1.3.1" data-path="buffer/class_SlicedByteBuf.html">
             
                 
                     <a href="../buffer/class_SlicedByteBuf.html">
@@ -386,124 +386,67 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_7">
+                    <section class="normal" id="section-gitbook_6">
                     
-                        <p>ReferenceCounted的设计和ByteBuf的实现(AbstractReferenceCountedByteBuf)都不复杂。</p>
-<p>但是对于如何使用ByteBuf, 在使用时候应该调用remain()/release()依然是个非常重要的话题。</p>
-<p>＃　原则</p>
-<p>究竟应该谁，在申明时候来销毁ByteBuf？</p>
-<p><a href="http://netty.io/wiki/reference-counted-objects.html" target="_blank">netty的wiki</a>中给出建议：</p>
-<p><strong> 通常的经验是谁最后访问引用计数对象，谁就负责销毁它</strong></p>
-<p>具体来说是以下两点：</p>
-<ul>
-<li>如果组件A把一个引用计数对象传给另一个组件B，那么组件A通常不需要销毁对象，而是把决定权交给组件B</li>
-<li>如果一个组件不再访问一个引用计数对象，那么这个组件负责销毁它</li>
-</ul>
-<p>看了一下<a href="http://netty.io/wiki/reference-counted-objects.html#wiki-h3-4" target="_blank">netty中的例子</a>,对照上面的原则和做法,总结如下.</p>
-<h2 id="buffer">传递buffer对象不返回</h2>
-<p>对于A调用B的情况,如果B的函数不会返回Buffer对象,代码类似如下:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-    ByteBuf buffer = createBuffer();
-    b(buffer);
+                        <h1 id="">继承关系</h1>
+<p>类SlicedByteBuf的继承关系,继承自AbstractDerivedByteBuf:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SlicedByteBuf</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractDerivedByteBuf</span> </span>{
+    <span class="hljs-keyword">private</span> ByteBuf buffer;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> adjustment;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> length;
+}
+</code></pre>
+<h1 id="">内部属性</h1>
+<p>SlicedByteBuf有三个最重要的内部属性:</p>
+<ol>
+<li>buffer: 引用(或者说映射/指向)的底层ByteBuf对象,真实的数据时存放在这里</li>
+<li>adjustment: 调整量,类似偏移量的概念,指当前SlicedByteBuf映射到底层ByteBuf对象时的偏移量</li>
+<li>length: 当前SlicedByteBuf的长度</li>
+</ol>
+<p>可以理解为SlicedByteBuf是对原有ByteBuf对象的部分数据的抽象,比如原来有一个ByteBuf有100个字节,我们将其中第20到49这30个字节的数据映射到一个新的SlicedByteBuf,这个SlicedByteBuf</p>
+<ol>
+<li>buffer: 指向原来的这个100字节的ByteBuf</li>
+<li>adjustment: 设置为20,表示从下标20开始的数据</li>
+<li>length: 设置为30,表示从adjustment开始的30字节的数据范围</li>
+</ol>
+<h1 id="">代码实现</h1>
+<h2 id="">构造函数</h2>
+<p>我们来看SlicedByteBuf的构造函数:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">SlicedByteBuf</span><span class="hljs-params">(ByteBuf buffer, <span class="hljs-keyword">int</span> index, <span class="hljs-keyword">int</span> length)</span> </span>{
+    <span class="hljs-keyword">super</span>(length);
+    init(buffer, index, length);
 }
 
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{}
-</code></pre>
-<p>会有以下几种情况:</p>
-<ol>
-<li><p>如果A传递buffer对象到B之后,A就放弃对buffer的控制</p>
-<p> 之后只有B才控制(或者说访问)buffer,那么此时B就负有在使用完成之后销毁buffer的责任.</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-     ByteBuf buffer = createBuffer();
-     b(buffer);
- }
-
- <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
-     <span class="hljs-keyword">try</span> {
-         <span class="hljs-comment">// handle buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-</code></pre>
-<p> 因此b需要遵循的原则: 如果有buffer传入,在使用完成之后需要销毁.</p>
-</li>
-<li><p>如果A传递buffer对象到B之后,A并没有放弃对buffer的控制</p>
-<p> 但是b是无法区分,b在被调用时是不知道a是否要放弃控制权,因此b只能继续遵循上述的原则做一次release.</p>
-<p> 此时a是知道自己的行为的,因此a可以在调用b之前,先行调用一次remain()方法. 这样a就可以在调用b之后继续保留对buffer的访问.</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-     ByteBuf buffer = createBuffer();
-     buffer.remain();
-     <span class="hljs-keyword">try</span> {
-         b(buffer);
-         <span class="hljs-comment">// a continue to use buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-
- <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
-     <span class="hljs-keyword">try</span> {
-         <span class="hljs-comment">// handle buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-</code></pre>
-</li>
-</ol>
-<h2 id="buffer">传递buffer对象又被返回</h2>
-<p>对于A调用B的情况,如果B的函数会返回Buffer对象,代码类似如下:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-    ByteBuf buffer = createBuffer();
-    buffer = b(buffer);
-    <span class="hljs-comment">// continue to access buffer</span>
+<span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">(ByteBuf buffer, <span class="hljs-keyword">int</span> index, <span class="hljs-keyword">int</span> length)</span> </span>{
+    <span class="hljs-keyword">if</span> (buffer <span class="hljs-keyword">instanceof</span> SlicedByteBuf) {
+        <span class="hljs-keyword">this</span>.buffer = ((SlicedByteBuf) buffer).buffer;
+        adjustment = ((SlicedByteBuf) buffer).adjustment + index;
+    } <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(buffer <span class="hljs-keyword">instanceof</span> DuplicatedByteBuf)</span> </span>{
+        <span class="hljs-keyword">this</span>.buffer = buffer.unwrap();
+        adjustment = index;
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">this</span>.buffer = buffer;
+        adjustment = index;
+    }
+    <span class="hljs-keyword">this</span>.length = length;
+    maxCapacity(length);
+    setIndex(<span class="hljs-number">0</span>, length);
+    discardMarks();
 }
-
-<span class="hljs-function">ByteBuf <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{}
 </code></pre>
-<p>会有以下几种情况:</p>
-<ol>
-<li><p>B在处理完成之后又将buffer原样返回,此时B不再控制buffer,而A在获取返回的buffer之后需要继续访问buffer,因此A才是最后的访问者,因此这时是A需要担负销毁buffer的责任</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-     ByteBuf buffer = createBuffer();
-     <span class="hljs-keyword">try</span> {
-         buffer = b(buffer);
-         <span class="hljs-comment">// continue to access buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-
- <span class="hljs-function">ByteBuf <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
-     <span class="hljs-comment">// handle buffer</span>
-     <span class="hljs-keyword">return</span> buffer;
- }
+<p>可以看到buffer/adjustment/length的设置和前面说的一致.</p>
+<p>注意SlicedByteBuf是支持对另外一个SlicedByteBuf做slice的.</p>
+<h2 id="">方法</h2>
+<p>部分方法是直接delegate给buffer:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">hasArray</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> buffer.hasArray();
+}
 </code></pre>
-</li>
-<li><p>B在处理传入的buffer之后,又重新生成一个新的ByteBuf返回.此时对于A时无法判断返回的buffer对象和上面情况有什么不同,因此A只能继续遵循上述的原则对返回的ByteBuf做release(). 而B应该对输入的ByteBuf做release().</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-     ByteBuf buffer = createBuffer();
-     <span class="hljs-keyword">try</span> {
-         buffer = b(buffer);
-         <span class="hljs-comment">// continue to access buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-
- <span class="hljs-function">ByteBuf <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
-     <span class="hljs-keyword">try</span> {
-         <span class="hljs-comment">// handle buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
-     ByteBuf newBuffer = createBuffer();
-     <span class="hljs-keyword">return</span> newBuffer;
- }
+<p>部分方法是delegate给buffer,但是需要考虑adjustment因素:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">byte</span> <span class="hljs-title">_getByte</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> </span>{
+    <span class="hljs-keyword">return</span> buffer.getByte(index + adjustment);
+}
 </code></pre>
-</li>
-</ol>
 
                     
                     </section>
@@ -514,10 +457,10 @@
         </div>
 
         
-        <a href="../buffer/class_AbstractReferenceCountedByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类AbstractReferenceCountedByteBuf代码实现"><i class="fa fa-angle-left"></i></a>
+        <a href="../buffer/zero_copy.html" class="navigation navigation-prev " aria-label="Previous page: Zero Copy"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/lack_detection.html" class="navigation navigation-next " aria-label="Next page: buffer泄露检测"><i class="fa fa-angle-right"></i></a>
+        <a href="../buffer/unpooled_wapped.html" class="navigation navigation-next " aria-label="Next page: 方法Unpooled.wrappedBuffer()代码实现"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

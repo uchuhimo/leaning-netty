@@ -5,7 +5,7 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>buffer的释放 | Leaning Netty</title>
+        <title>方法Unpooled.wrappedBuffer()代码实现 | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/lack_detection.html" />
+    <link rel="next" href="../buffer/code_analyze.html" />
     
     
-    <link rel="prev" href="../buffer/class_AbstractReferenceCountedByteBuf.html" />
+    <link rel="prev" href="../buffer/class_SlicedByteBuf.html" />
     
 
         
@@ -34,7 +34,7 @@
 
 
         
-    <div class="book" data-level="1.1.2.3" data-basepath=".." data-revision="1441783119250">
+    <div class="book" data-level="1.1.3.2" data-basepath=".." data-revision="1441783119250">
     
 
 <div class="book-summary">
@@ -165,7 +165,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="1.1.2.3" data-path="buffer/buffer_release.html">
+        <li class="chapter " data-level="1.1.2.3" data-path="buffer/buffer_release.html">
             
                 
                     <a href="../buffer/buffer_release.html">
@@ -251,7 +251,7 @@
         </li>
     
         
-        <li class="chapter " data-level="1.1.3.2" data-path="buffer/unpooled_wapped.html">
+        <li class="chapter active" data-level="1.1.3.2" data-path="buffer/unpooled_wapped.html">
             
                 
                     <a href="../buffer/unpooled_wapped.html">
@@ -386,124 +386,95 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_7">
+                    <section class="normal" id="section-gitbook_12">
                     
-                        <p>ReferenceCounted的设计和ByteBuf的实现(AbstractReferenceCountedByteBuf)都不复杂。</p>
-<p>但是对于如何使用ByteBuf, 在使用时候应该调用remain()/release()依然是个非常重要的话题。</p>
-<p>＃　原则</p>
-<p>究竟应该谁，在申明时候来销毁ByteBuf？</p>
-<p><a href="http://netty.io/wiki/reference-counted-objects.html" target="_blank">netty的wiki</a>中给出建议：</p>
-<p><strong> 通常的经验是谁最后访问引用计数对象，谁就负责销毁它</strong></p>
-<p>具体来说是以下两点：</p>
-<ul>
-<li>如果组件A把一个引用计数对象传给另一个组件B，那么组件A通常不需要销毁对象，而是把决定权交给组件B</li>
-<li>如果一个组件不再访问一个引用计数对象，那么这个组件负责销毁它</li>
-</ul>
-<p>看了一下<a href="http://netty.io/wiki/reference-counted-objects.html#wiki-h3-4" target="_blank">netty中的例子</a>,对照上面的原则和做法,总结如下.</p>
-<h2 id="buffer">传递buffer对象不返回</h2>
-<p>对于A调用B的情况,如果B的函数不会返回Buffer对象,代码类似如下:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-    ByteBuf buffer = createBuffer();
-    b(buffer);
+                        <p>在类Unpooled中提供给了多个名为wrappedBuffer()的帮助方法,用来创建包装给定数据的ByteBuf对象.</p>
+<h2 id="byte">包装单个byte数组</h2>
+<p>代码实现:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">byte</span>[] array)</span> </span>{
+    <span class="hljs-keyword">if</span> (array.length == <span class="hljs-number">0</span>) {
+        <span class="hljs-keyword">return</span> EMPTY_BUFFER;
+    }
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnpooledHeapByteBuf</span><span class="hljs-params">(ALLOC, array, array.length)</span></span>;
 }
-
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{}
 </code></pre>
-<p>会有以下几种情况:</p>
-<ol>
-<li><p>如果A传递buffer对象到B之后,A就放弃对buffer的控制</p>
-<p> 之后只有B才控制(或者说访问)buffer,那么此时B就负有在使用完成之后销毁buffer的责任.</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-     ByteBuf buffer = createBuffer();
-     b(buffer);
- }
+<p>结论: byte[]被包装成一个UnpooledHeapByteBuf对象.</p>
+<h2 id="byte">包装多个byte数组</h2>
+<p>代码实现:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> maxNumComponents, <span class="hljs-keyword">byte</span>[]... arrays)</span> </span>{
+    <span class="hljs-keyword">switch</span> (arrays.length) {
+    <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:
+        <span class="hljs-comment">//如果长度为0,返回EMPTY_BUFFER</span>
+        <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:
+        <span class="hljs-keyword">if</span> (arrays[<span class="hljs-number">0</span>].length != <span class="hljs-number">0</span>) {
+            <span class="hljs-comment">//长度为1, 调用回wrappedBuffer(byte[])</span>
+            <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(arrays[<span class="hljs-number">0</span>])</span></span>;
+        }
+        <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">default</span>:
+        <span class="hljs-comment">// Get the list of the component, while guessing the byte order.</span>
+        <span class="hljs-keyword">final</span> List&lt;ByteBuf&gt; components = <span class="hljs-keyword">new</span> ArrayList&lt;ByteBuf&gt;(arrays.length);
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">byte</span>[] a: arrays) {        <span class="hljs-comment">// 游历数组,如果为null或空就跳过</span>
+            <span class="hljs-keyword">if</span> (a == <span class="hljs-keyword">null</span>) {
+                <span class="hljs-keyword">break</span>;
+            }
+            <span class="hljs-keyword">if</span> (a.length &gt; <span class="hljs-number">0</span>) {
+                <span class="hljs-comment">// 有效的数据就通过调用wrappedBuffer(byte[]包装为一个ByteBuf</span>
+                components.add(wrappedBuffer(a));
+            }
+        }
 
- <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
-     <span class="hljs-keyword">try</span> {
-         <span class="hljs-comment">// handle buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-</code></pre>
-<p> 因此b需要遵循的原则: 如果有buffer传入,在使用完成之后需要销毁.</p>
-</li>
-<li><p>如果A传递buffer对象到B之后,A并没有放弃对buffer的控制</p>
-<p> 但是b是无法区分,b在被调用时是不知道a是否要放弃控制权,因此b只能继续遵循上述的原则做一次release.</p>
-<p> 此时a是知道自己的行为的,因此a可以在调用b之前,先行调用一次remain()方法. 这样a就可以在调用b之后继续保留对buffer的访问.</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-     ByteBuf buffer = createBuffer();
-     buffer.remain();
-     <span class="hljs-keyword">try</span> {
-         b(buffer);
-         <span class="hljs-comment">// a continue to use buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
+        <span class="hljs-keyword">if</span> (!components.isEmpty()) {
+            <span class="hljs-comment">//将多个ByteBuf包装为1个CompositeByteBuf</span>
+            <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">CompositeByteBuf</span><span class="hljs-params">(ALLOC, <span class="hljs-keyword">false</span>, maxNumComponents, components)</span></span>;
+        }
+    }
 
- <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
-     <span class="hljs-keyword">try</span> {
-         <span class="hljs-comment">// handle buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-</code></pre>
-</li>
-</ol>
-<h2 id="buffer">传递buffer对象又被返回</h2>
-<p>对于A调用B的情况,如果B的函数会返回Buffer对象,代码类似如下:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-    ByteBuf buffer = createBuffer();
-    buffer = b(buffer);
-    <span class="hljs-comment">// continue to access buffer</span>
+    <span class="hljs-keyword">return</span> EMPTY_BUFFER;
 }
-
-<span class="hljs-function">ByteBuf <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{}
 </code></pre>
-<p>会有以下几种情况:</p>
-<ol>
-<li><p>B在处理完成之后又将buffer原样返回,此时B不再控制buffer,而A在获取返回的buffer之后需要继续访问buffer,因此A才是最后的访问者,因此这时是A需要担负销毁buffer的责任</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-     ByteBuf buffer = createBuffer();
-     <span class="hljs-keyword">try</span> {
-         buffer = b(buffer);
-         <span class="hljs-comment">// continue to access buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-
- <span class="hljs-function">ByteBuf <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
-     <span class="hljs-comment">// handle buffer</span>
-     <span class="hljs-keyword">return</span> buffer;
- }
+<p>结论: 多个byte[]被包装成多个UnpooledHeapByteBuf对象,最后再包装进一个CompositeByteBuf.</p>
+<h2 id="bytebuf">包装单个ByteBuf</h2>
+<p>代码实现:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
+    <span class="hljs-keyword">if</span> (buffer.isReadable()) {
+        <span class="hljs-comment">// 有可读数据, 调用buffer.slice()将可读数据包装为一个ByteBuf</span>
+        <span class="hljs-keyword">return</span> buffer.slice();
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// 如果没有可读数据,返回EMPTY_BUFFER</span>
+        <span class="hljs-keyword">return</span> EMPTY_BUFFER;
+    }
+}
 </code></pre>
-</li>
-<li><p>B在处理传入的buffer之后,又重新生成一个新的ByteBuf返回.此时对于A时无法判断返回的buffer对象和上面情况有什么不同,因此A只能继续遵循上述的原则对返回的ByteBuf做release(). 而B应该对输入的ByteBuf做release().</p>
-<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">a</span><span class="hljs-params">()</span> </span>{
-     ByteBuf buffer = createBuffer();
-     <span class="hljs-keyword">try</span> {
-         buffer = b(buffer);
-         <span class="hljs-comment">// continue to access buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
- }
-
- <span class="hljs-function">ByteBuf <span class="hljs-title">b</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{
-     <span class="hljs-keyword">try</span> {
-         <span class="hljs-comment">// handle buffer</span>
-     } <span class="hljs-keyword">finally</span> {
-         buffer.release();
-     }
-     ByteBuf newBuffer = createBuffer();
-     <span class="hljs-keyword">return</span> newBuffer;
- }
+<p>结论: 多个ByteBuf对象(的可读内容)被包装进一个CompositeByteBuf.</p>
+<h2 id="bytebuf">包装多个ByteBuf</h2>
+<p>代码实现:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> maxNumComponents, ByteBuf... buffers)</span> </span>{
+    <span class="hljs-keyword">switch</span> (buffers.length) {
+    <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:
+        <span class="hljs-comment">//如果长度为0,返回EMPTY_BUFFER</span>
+        <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:
+        <span class="hljs-keyword">if</span> (buffers[<span class="hljs-number">0</span>].isReadable()) {
+            <span class="hljs-comment">//长度为1并且有可读数据, 调用回wrappedBuffer(ByteBuf)</span>
+            <span class="hljs-comment">// TBD: 不清楚为什么这里需要调用 order(BIG_ENDIAN)?</span>
+            <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(buffers[<span class="hljs-number">0</span>].order(BIG_ENDIAN)</span>)</span>;
+        }
+        <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">default</span>:
+        <span class="hljs-comment">// 注意这里的判断: 只要有一个ByteBuf有可读数据,就包装为CompositeByteBuf</span>
+        <span class="hljs-keyword">for</span> (ByteBuf b: buffers) {
+            <span class="hljs-keyword">if</span> (b.isReadable()) {
+                <span class="hljs-comment">//将多个ByteBuf包装为1个CompositeByteBuf</span>
+                <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">CompositeByteBuf</span><span class="hljs-params">(ALLOC, <span class="hljs-keyword">false</span>, maxNumComponents, buffers)</span></span>;
+            }
+        }
+    }
+    <span class="hljs-keyword">return</span> EMPTY_BUFFER;
+}
 </code></pre>
-</li>
-</ol>
+<p>结论: 多个ByteBuf对象(的可读内容)被包装进一个CompositeByteBuf.</p>
 
                     
                     </section>
@@ -514,10 +485,10 @@
         </div>
 
         
-        <a href="../buffer/class_AbstractReferenceCountedByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类AbstractReferenceCountedByteBuf代码实现"><i class="fa fa-angle-left"></i></a>
+        <a href="../buffer/class_SlicedByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类SlicedByteBuf代码实现"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/lack_detection.html" class="navigation navigation-next " aria-label="Next page: buffer泄露检测"><i class="fa fa-angle-right"></i></a>
+        <a href="../buffer/code_analyze.html" class="navigation navigation-next " aria-label="Next page: 代码分析"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
