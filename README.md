@@ -1,9 +1,6 @@
 # leaning-netty
-Records during leaning netty.
+Netty学习笔记, 包括代码学习,源码分析.基于最新的netty5.
 
-Netty学习笔记
-=======================
+笔记格式基于markdow, 采用gitbook组织内容.
 
-这是一份个人的学习笔记，用于记录Netty学习过程的各种知识和心得。
-
-请点击 [这里](http://skyao.github.io/leaning-netty/) 查看该笔记的HTML内容.
+请点击 [这里](http://skyao.github.io/leaning-netty/) 查看完整HTML内容.
