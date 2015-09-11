@@ -1,0 +1,57 @@
+@startuml
+ByteBuf             <|--    AbstractByteBuf
+class AbstractByteBuf {
+    - readerIndex
+    - writerIndex
+    - markedReaderIndex
+    - markedWriterIndex
+    - maxCapacity
+    ~ leakDetector
+}
+
+AbstractByteBuf     <|--    AbstractReferenceCountedByteBuf
+class AbstractReferenceCountedByteBuf {
+    - refCnt
+    + retain()
+    + release()
+    # deallocate()
+}
+
+AbstractReferenceCountedByteBuf       <|--    CompositeByteBuf
+class CompositeByteBuf {
+    - components
+}
+
+AbstractReferenceCountedByteBuf       <|--    UnpooledDirectByteBuf
+AbstractReferenceCountedByteBuf       <|--    UnpooledHeapByteBuf
+AbstractReferenceCountedByteBuf       <|--    UnpooledUnsafeDirectByteBuf
+class UnpooledDirectByteBuf {
+    - ByteBuffer buffer
+}
+class UnpooledHeapByteBuf {
+    - byte[] array
+}
+class UnpooledUnsafeDirectByteBuf {
+    - ByteBuffer buffer
+}
+
+
+AbstractReferenceCountedByteBuf       <|--    PooledByteBuf
+PooledByteBuf <|-- PooledHeapByteBuf
+PooledByteBuf <|-- PooledUnsafeDirectByteBuf
+PooledByteBuf <|-- PooledDirectByteBuf
+class PooledHeapByteBuf {
+    # byte[] memory;
+    # PoolChunk<byte[]> chunk
+}
+class PooledUnsafeDirectByteBuf {
+    # ByteBuffer array
+    # PoolChunk<ByteBuffer> chunk
+}
+class PooledDirectByteBuf {
+    # ByteBuffer buffer
+    # PoolChunk<ByteBuffer> chunk
+}
+
+
+@enduml

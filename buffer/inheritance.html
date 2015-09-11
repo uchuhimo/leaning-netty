@@ -5,7 +5,7 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>类AbstractReferenceCountedByteBuf | Leaning Netty</title>
+        <title>ByteBuf继承结构 | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/buffer_release.html" />
+    <link rel="next" href="../buffer/important_features.html" />
     
     
-    <link rel="prev" href="../buffer/interface_ReferenceCounted.html" />
+    <link rel="prev" href="../buffer/buffer.html" />
     
 
         
@@ -34,7 +34,7 @@
 
 
         
-    <div class="book" data-level="1.2.2.2" data-basepath=".." data-revision="1441957395077">
+    <div class="book" data-level="1.1" data-basepath=".." data-revision="1441957395077">
     
 
 <div class="book-summary">
@@ -83,7 +83,7 @@
                 
     
         
-        <li class="chapter " data-level="1.1" data-path="buffer/inheritance.html">
+        <li class="chapter active" data-level="1.1" data-path="buffer/inheritance.html">
             
                 
                     <a href="../buffer/inheritance.html">
@@ -165,7 +165,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="1.2.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
+        <li class="chapter " data-level="1.2.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
             
                 
                     <a href="../buffer/class_AbstractReferenceCountedByteBuf.html">
@@ -450,110 +450,92 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_3">
+                    <section class="normal" id="section-gitbook_12">
                     
-                        <h1 id="">类定义</h1>
-<p>AbstractReferenceCountedByteBuf的类定义:</p>
-<pre><code>public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf
-
-public abstract class AbstractByteBuf extends ByteBuf
-
-public abstract class ByteBuf implements ReferenceCounted, Comparable&lt;ByteBuf&gt;
-</code></pre><p>ByteBuf申明了对接口ReferenceCounted的实现,但是实际的代码支持在AbstractReferenceCountedByteBuf中.</p>
-<h1 id="">代码分析</h1>
-<p>类AbstractReferenceCountedByteBuf中主要是实现了ByteBuf对接口ReferenceCounted的支持,没有其他代码.</p>
-<h2 id="refcntupdater">refCntUpdater</h2>
-<p>静态变量refCntUpdater和静态初始化代码:</p>
-<pre><code>private static final AtomicIntegerFieldUpdater&lt;AbstractReferenceCountedByteBuf&gt; refCntUpdater;
-
-static {
-    AtomicIntegerFieldUpdater&lt;AbstractReferenceCountedByteBuf&gt; updater =
-            PlatformDependent.newAtomicIntegerFieldUpdater(AbstractReferenceCountedByteBuf.class, &quot;refCnt&quot;);
-    if (updater == null) {
-        updater = AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCountedByteBuf.class, &quot;refCnt&quot;);
-    }
-    refCntUpdater = updater;
-}
-</code></pre><p>在类装载时初始化refCntUpdater以备用. 使用到PlatformDependent类(这块细节不展开).</p>
-<h2 id="refcnt">refCnt</h2>
-<p>类属性refCnt的定义, 注意初始化值为1:</p>
-<pre><code>private volatile int refCnt = 1;
-</code></pre><p>关键字volatile使得对refCnt 的访问都会基于主内存.refCnt()方法就只是简单返回这个refCnt属性.</p>
-<pre><code>public final int refCnt() {
-    return refCnt;
-}
-</code></pre><h2 id="retain">retain()方法</h2>
-<p>ReferenceCounted的工作原理: 当引用计数对象被初始化时, 引用计数器从1开始计数. retain()方法增加引用计数,而release()方法减少引用计数.如果引用计数被减到0,则这个对象就将被显式回收,而访问被回收的对象将通常会导致访问违规.</p>
-<p>前面看到refCnt初始化值为1,和上面的原理一致. 继续看retain()方法的实现:</p>
-<pre><code>@Override
-public ByteBuf retain() {
-    for (;;) {
-        int refCnt = this.refCnt;
-        if (refCnt == 0) {
-            throw new IllegalReferenceCountException(0, 1);
-        }
-        if (refCnt == Integer.MAX_VALUE) {
-            throw new IllegalReferenceCountException(Integer.MAX_VALUE, 1);
-        }
-        if (refCntUpdater.compareAndSet(this, refCnt, refCnt + 1)) {
-            break;
-        }
-    }
-    return this;
-}
-</code></pre><p>核心代码是for循环加compareAndSet()方法, 通过CAS机制在不加锁的情况下实现了对refCnt变量的并发更新, &quot;refCnt + 1&quot;表明计数器加1:</p>
-<pre><code>    for (;;) {
-        int refCnt = this.refCnt;
-        if (refCntUpdater.compareAndSet(this, refCnt, refCnt + 1)) {
-            break;
-        }
-    }
-</code></pre><p>&quot;refCnt == 0&quot;的检测则是遵循原理中的要求: 访问被回收的对象将通常会导致访问违规.</p>
-<p>retain(int increment) 方法的实现和retain()几乎完全相同,只是increment不是固定为1而已. 有点不太理解的是netty为什么不直接通过在retain()中调用retain(1)的方式来实现, 我能想到的理由就是retain()的调用非常频繁(远远超过retain(int increment)), 因此现在的做法可以带来少许的性能提升?</p>
-<h2 id="release">release()方法</h2>
-<p>release()方法的代码实现:</p>
-<pre><code>@Override
-public final boolean release() {
-    for (;;) {
-        int refCnt = this.refCnt;
-        if (refCnt == 0) {
-            throw new IllegalReferenceCountException(0, -1);
-        }
-
-        if (refCntUpdater.compareAndSet(this, refCnt, refCnt - 1)) {
-            if (refCnt == 1) {
-                deallocate();
-                return true;
-            }
-            return false;
-        }
-    }
-}
-</code></pre><p>代码核心有两个功能:</p>
+                        <h1 id="">继承结构</h1>
+<h2 id="bytebuf">ByteBuf全景图</h2>
+<p>ByteBuf实现类众多,继承层级复杂:</p>
+<p><img src="image/all_buffer.png" alt="全部ByteBuf类"></p>
+<p>第一眼看上去比较乱,拆分为三个大块后就容易理解:</p>
+<ul>
+<li>ByteBuf基础实现类: ByteBuf的基本实现</li>
+<li>ByteBuf衍生类: 基于Basic ByteBuf衍生的ByteBuf</li>
+<li>特殊的ByteBuf类: 一些比较特殊的ByteBuf实现</li>
+</ul>
+<h2 id="bytebuf">ByteBuf基础实现类</h2>
+<p>ByteBuf的基础实现类，按照内存分配方式不同分为：</p>
+<ul>
+<li>HeapByteBuf: 直接使用java堆内存</li>
+<li>DirectByteBuf: 使用java nio提供的直接内存, 体现为使用nio ByteBuffer</li>
+<li>UnsafeDirectByteBuf: DirectByteBuf的特殊情况,如果当前系统提供了sun.misc.Unsafe</li>
+</ul>
+<p>然后按照是否支持池共享又分为：</p>
+<ul>
+<li>PooledByteBuf</li>
+<li>UnpooledByteBuf</li>
+</ul>
+<p>注意: PooledByteBuf是4.x之后的新特性, netty3.*和之前版本不支持的.</p>
+<p><img src="image/basic_buffer.png" alt="Basic ByteBuf"></p>
+<p>去掉干扰之后, 再看ByteBuf的基本实现就很清晰:</p>
 <ol>
-<li>通过CAS实现refCnt减一,方式和retain()里面是一样的</li>
-<li>判断refCnt,如果==1,意味着这次release()调用之后计数器会被置零.按照原理要求,&quot;如果引用计数被减到0,则这个对象就将被显式回收&quot;.因此调用deallocate()方法显式回收对象</li>
+<li><p>首先是ByteBuf/AbstractByteBuf/AbstractReferenceCountedByteBuf搭建起基础</p>
+<ul>
+<li>ByteBuf: ByteBuf的接口定义
+  比较奇怪的是netty的作者选择了不定义为interface,而是abstract class然后没有任何接口定义之外的代码</li>
+<li>AbstractByteBuf: 提供了readerIndex/writerIndex/maxCapacity等相关的基础功能,实现了一些通用的方法方便基类使用,定义了一些模板方法. 另外定义了leakDetector.</li>
+<li>AbstractReferenceCountedByteBuf: 为Reference Counted提供了基础实现如refCnt/retain()方法/release()方法,还定义了非常重要的模板方法deallocate()</li>
+</ul>
+</li>
+<li><p>根据是否支持Pool,区分为Unpooled和Pooled两大阵营</p>
+<p> Unpooled阵营:</p>
+<pre><code> - UnpooledHeapByteBuf: 提供非池化的堆内存支持, 基于byte[]
+ - UnpooledDirectByteBuf: 提供非池化的直接内存支持, 基于 NIO ByteBuffer
+ - UnpooledUnsafeDirectByteBuf: 提供非池化的直接内存支持,基于 NIO ByteBuffer, **要求sun.misc.Unsafe可用**
+</code></pre><p> Pooled阵营:</p>
+<pre><code> - PooledByteBuf: Pooled的基类, 提供Pool的基本实现
+ - PooledHeapByteBuf: 提供池化的堆内存支持, 基于byte[]
+ - PooledUnsafeDirectByteBuf: 提供池化的直接内存支持, 基于 NIO ByteBuffer
+ - PooledDirectByteBuf: 提供池化的直接内存支持,基于 NIO ByteBuffer, **要求sun.misc.Unsafe可用**
+</code></pre><p> 设计上,比较奇怪的是没有定义一个UnpooledByteBuf基类,造成两大阵营的结构不对称,看上去不够美观 :)</p>
+</li>
+<li><p>CompositeByteBuf</p>
+<p> 在Unpooled和Pooled两大阵营之外, CompositeByteBuf是一个超然的存在.</p>
+<p> CompositeByteBuf是一个虚拟的buffer,将多个buffer展现为一个简单合并的buffer,以便实现netty最重要的特性之一: zero copy.后面有详细分析.</p>
+<p> 从类的功能和实现上看, CompositeByteBuf更应该归入后面的ByteBuf衍生</p>
+</li>
 </ol>
-<p>返回值只有在deallocate()时才return true, 其他情况都是return false.</p>
-<p>&quot;refCnt == 0&quot;的检测同样时遵循原理的要求: 访问被回收的对象将通常会导致访问违规.</p>
-<p>然后看deallocate(),只是一个protected abstract的模板方法, 子类自行实现.</p>
-<pre><code>    /**
-     * Called once {@link #refCnt()} is equals 0.
-     */
-    protected abstract void deallocate();
-</code></pre><p>release(int decrement)方法实现基本相同.</p>
-<h2 id="touch">touch()方法</h2>
-<p>AbstractReferenceCountedByteBuf中提供了touch()方法的两个空实现, 基本没有任何实际意义:</p>
-<pre><code>@Override
-public ByteBuf touch() {
-    return this;
-}
-
-@Override
-public ByteBuf touch(Object hint) {
-    return this;
-}
-</code></pre><p>找了一下子类,也没有发现有其他的具体实现,这块有点糊涂(难道netty还没有完成这个touch机制的实现?).</p>
+<h2 id="bytebuf">ByteBuf衍生类</h2>
+<p>Derived ByteBuf是在ByteBuf的基本实现基础上衍生出来的: 包装其他ByteBuf,然后增加一些特别的功能.</p>
+<p>Derived ByteBuf有抽象类AbstractDerivedByteBuf作为基类.AbstractDerivedByteBuf的javadoc如此描述:</p>
+<pre><code>Abstract base class for ByteBuf implementations that wrap another ByteBuf.
+</code></pre><p><img src="image/derived_buffer.png" alt="Derived ByteBuf"></p>
+<p>类继承结构如图,主要有:</p>
+<ul>
+<li>DuplicatedByteBuf: 简单的将所有的请求都委托给包装的ByteBuf</li>
+<li>PooledDuplicatedByteBuf: 在DuplicatedByteBuf的基础上提供池的支持</li>
+<li>ReadOnlyByteBuf: 将原有ByteBuf包装为只读的ByteBuf, 所有的写方法都被禁止(抛ReadOnlyBufferException)</li>
+<li>SlicedByteBuf: 将原有ByteBuf的部分内容拆分出来的ByteBuf,主要是为了实现zero-copy特性,后面有详细介绍</li>
+<li>PooledSlicedByteBuf: 在SlicedByteBuf的基础上提供池的支持</li>
+</ul>
+<h2 id="bytebuf">特殊的ByteBuf类</h2>
+<p><img src="image/special_buffer.png" alt="特殊的3个ByteBuf"></p>
+<p>除了上面介绍的ByteBuf的底层实现类和衍生类之外,netty还提供了3种特殊的ByteBuf:</p>
+<ul>
+<li>EmptyByteBuf: 空的ByteBuf, capacity 和 maximum capacity 都被设置为0.</li>
+<li>SwappedByteBuf: Swap/交换指的是LITTLE_ENDIAN/BIG_ENDIAN之间的交换, SwappedByteBuf用于包装一个ByteBuf,内容相同但是ByteOrder相反.</li>
+<li>WrappedByteBuf: WrappedByteBuf顾名思义是用来包装其他ByteBuf的,代码实现也简单: 包装一个ByteBuf,然后所有方法调用委托给被包装的ByteBuf</li>
+</ul>
+<p>WrappedByteBuf的主要作用是作为基类派生出下面几个子类:</p>
+<ul>
+<li>AdvancedLeakAwareByteBuf</li>
+<li>SimpleLeakAwareByteBuf</li>
+<li>UnreleasableByteBuf</li>
+</ul>
+<p>AdvancedLeakAwareByteBuf和SimpleLeakAwareByteBuf用于resource leak detect. 具体介绍见<a href="./class_LeakAwareByteBuf.html">类LeakAwareByteBuf</a>.</p>
+<p>UnreleasableByteBuf用于阻止其他对ByteBuf的销毁. 具体介绍见<a href="./class_UnreleasableByteBuf.html">类UnreleasableByteBuf</a>.</p>
+<h1 id="">总结</h1>
+<p>在将所有的ByteBuf类划分为上述3个大块之后, ByteBuf的设计就很清晰了.</p>
+<p>后面将通过重点介绍netty提供的几个重要特性来详细展开相关ByteBuf类的具体实现.</p>
 
                     
                     </section>
@@ -564,10 +546,10 @@ public ByteBuf touch(Object hint) {
         </div>
 
         
-        <a href="../buffer/interface_ReferenceCounted.html" class="navigation navigation-prev " aria-label="Previous page: 接口ReferenceCounted"><i class="fa fa-angle-left"></i></a>
+        <a href="../buffer/buffer.html" class="navigation navigation-prev " aria-label="Previous page: Buffer"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/buffer_release.html" class="navigation navigation-next " aria-label="Next page: buffer的释放"><i class="fa fa-angle-right"></i></a>
+        <a href="../buffer/important_features.html" class="navigation navigation-next " aria-label="Next page: ByteBuf重要特性"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

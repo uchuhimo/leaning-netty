@@ -1,0 +1,26 @@
+@startuml
+ByteBuf             <|--    AbstractByteBuf
+AbstractByteBuf     <|--    AbstractDerivedByteBuf
+
+AbstractDerivedByteBuf  <|--    DuplicatedByteBuf
+class DuplicatedByteBuf {
+    - ByteBuf buffer
+}
+
+DuplicatedByteBuf       <|--    PooledDuplicatedByteBuf
+AbstractDerivedByteBuf  <|--    ReadOnlyByteBuf
+class ReadOnlyByteBuf {
+    - ByteBuf buffer
+}
+
+AbstractDerivedByteBuf  <|--    SlicedByteBuf
+class SlicedByteBuf {
+    - ByteBuf buffer;
+    - adjustment;
+    - length;
+}
+
+SlicedByteBuf           <|--    PooledSlicedByteBuf
+
+
+@enduml

@@ -5,7 +5,7 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>类AbstractReferenceCountedByteBuf | Leaning Netty</title>
+        <title>类LeakAwareByteBuf | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/buffer_release.html" />
+    <link rel="next" href="../buffer/zero_copy.html" />
     
     
-    <link rel="prev" href="../buffer/interface_ReferenceCounted.html" />
+    <link rel="prev" href="../buffer/class_ResourceLeakDetector.html" />
     
 
         
@@ -34,7 +34,7 @@
 
 
         
-    <div class="book" data-level="1.2.2.2" data-basepath=".." data-revision="1441957395077">
+    <div class="book" data-level="1.2.2.7" data-basepath=".." data-revision="1441957395077">
     
 
 <div class="book-summary">
@@ -165,7 +165,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="1.2.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
+        <li class="chapter " data-level="1.2.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
             
                 
                     <a href="../buffer/class_AbstractReferenceCountedByteBuf.html">
@@ -245,7 +245,7 @@
         </li>
     
         
-        <li class="chapter " data-level="1.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
+        <li class="chapter active" data-level="1.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
             
                 
                     <a href="../buffer/class_LeakAwareByteBuf.html">
@@ -450,110 +450,81 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_3">
+                    <section class="normal" id="section-gitbook_5">
                     
-                        <h1 id="">类定义</h1>
-<p>AbstractReferenceCountedByteBuf的类定义:</p>
-<pre><code>public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf
-
-public abstract class AbstractByteBuf extends ByteBuf
-
-public abstract class ByteBuf implements ReferenceCounted, Comparable&lt;ByteBuf&gt;
-</code></pre><p>ByteBuf申明了对接口ReferenceCounted的实现,但是实际的代码支持在AbstractReferenceCountedByteBuf中.</p>
-<h1 id="">代码分析</h1>
-<p>类AbstractReferenceCountedByteBuf中主要是实现了ByteBuf对接口ReferenceCounted的支持,没有其他代码.</p>
-<h2 id="refcntupdater">refCntUpdater</h2>
-<p>静态变量refCntUpdater和静态初始化代码:</p>
-<pre><code>private static final AtomicIntegerFieldUpdater&lt;AbstractReferenceCountedByteBuf&gt; refCntUpdater;
-
-static {
-    AtomicIntegerFieldUpdater&lt;AbstractReferenceCountedByteBuf&gt; updater =
-            PlatformDependent.newAtomicIntegerFieldUpdater(AbstractReferenceCountedByteBuf.class, &quot;refCnt&quot;);
-    if (updater == null) {
-        updater = AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCountedByteBuf.class, &quot;refCnt&quot;);
-    }
-    refCntUpdater = updater;
-}
-</code></pre><p>在类装载时初始化refCntUpdater以备用. 使用到PlatformDependent类(这块细节不展开).</p>
-<h2 id="refcnt">refCnt</h2>
-<p>类属性refCnt的定义, 注意初始化值为1:</p>
-<pre><code>private volatile int refCnt = 1;
-</code></pre><p>关键字volatile使得对refCnt 的访问都会基于主内存.refCnt()方法就只是简单返回这个refCnt属性.</p>
-<pre><code>public final int refCnt() {
-    return refCnt;
-}
-</code></pre><h2 id="retain">retain()方法</h2>
-<p>ReferenceCounted的工作原理: 当引用计数对象被初始化时, 引用计数器从1开始计数. retain()方法增加引用计数,而release()方法减少引用计数.如果引用计数被减到0,则这个对象就将被显式回收,而访问被回收的对象将通常会导致访问违规.</p>
-<p>前面看到refCnt初始化值为1,和上面的原理一致. 继续看retain()方法的实现:</p>
-<pre><code>@Override
-public ByteBuf retain() {
-    for (;;) {
-        int refCnt = this.refCnt;
-        if (refCnt == 0) {
-            throw new IllegalReferenceCountException(0, 1);
-        }
-        if (refCnt == Integer.MAX_VALUE) {
-            throw new IllegalReferenceCountException(Integer.MAX_VALUE, 1);
-        }
-        if (refCntUpdater.compareAndSet(this, refCnt, refCnt + 1)) {
-            break;
-        }
-    }
-    return this;
-}
-</code></pre><p>核心代码是for循环加compareAndSet()方法, 通过CAS机制在不加锁的情况下实现了对refCnt变量的并发更新, &quot;refCnt + 1&quot;表明计数器加1:</p>
-<pre><code>    for (;;) {
-        int refCnt = this.refCnt;
-        if (refCntUpdater.compareAndSet(this, refCnt, refCnt + 1)) {
-            break;
-        }
-    }
-</code></pre><p>&quot;refCnt == 0&quot;的检测则是遵循原理中的要求: 访问被回收的对象将通常会导致访问违规.</p>
-<p>retain(int increment) 方法的实现和retain()几乎完全相同,只是increment不是固定为1而已. 有点不太理解的是netty为什么不直接通过在retain()中调用retain(1)的方式来实现, 我能想到的理由就是retain()的调用非常频繁(远远超过retain(int increment)), 因此现在的做法可以带来少许的性能提升?</p>
-<h2 id="release">release()方法</h2>
-<p>release()方法的代码实现:</p>
-<pre><code>@Override
-public final boolean release() {
-    for (;;) {
-        int refCnt = this.refCnt;
-        if (refCnt == 0) {
-            throw new IllegalReferenceCountException(0, -1);
-        }
-
-        if (refCntUpdater.compareAndSet(this, refCnt, refCnt - 1)) {
-            if (refCnt == 1) {
-                deallocate();
-                return true;
+                        <p>netty中为了方便监控ByteBuf的泄露, 实现了两个LeakAwareByteBuf:</p>
+<ul>
+<li>AdvancedLeakAwareByteBuf</li>
+<li>SimpleLeakAwareByteBuf</li>
+</ul>
+<h1 id="">调用方式</h1>
+<p>AdvancedLeakAwareByteBuf和SimpleLeakAwareByteBuf和resource leak detect相关,在方法 AbstractByteBufAllocator.toLeakAwareBuffer()中被调用,分别对应resource leak detect的不同级别: </p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">toLeakAwareBuffer</span><span class="hljs-params">(ByteBuf buf)</span> </span>{
+    ResourceLeak leak;
+    <span class="hljs-keyword">switch</span> (ResourceLeakDetector.getLevel()) {
+        <span class="hljs-keyword">case</span> SIMPLE:
+            leak = AbstractByteBuf.leakDetector.open(buf);
+            <span class="hljs-keyword">if</span> (leak != <span class="hljs-keyword">null</span>) {
+                buf = <span class="hljs-keyword">new</span> SimpleLeakAwareByteBuf(buf, leak);
             }
-            return false;
-        }
+            <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">case</span> ADVANCED:
+        <span class="hljs-keyword">case</span> PARANOID:
+            leak = AbstractByteBuf.leakDetector.open(buf);
+            <span class="hljs-keyword">if</span> (leak != <span class="hljs-keyword">null</span>) {
+                buf = <span class="hljs-keyword">new</span> AdvancedLeakAwareByteBuf(buf, leak);
+            }
+            <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">default</span>:
+            <span class="hljs-keyword">break</span>;
     }
+    <span class="hljs-keyword">return</span> buf;
 }
-</code></pre><p>代码核心有两个功能:</p>
-<ol>
-<li>通过CAS实现refCnt减一,方式和retain()里面是一样的</li>
-<li>判断refCnt,如果==1,意味着这次release()调用之后计数器会被置零.按照原理要求,&quot;如果引用计数被减到0,则这个对象就将被显式回收&quot;.因此调用deallocate()方法显式回收对象</li>
-</ol>
-<p>返回值只有在deallocate()时才return true, 其他情况都是return false.</p>
-<p>&quot;refCnt == 0&quot;的检测同样时遵循原理的要求: 访问被回收的对象将通常会导致访问违规.</p>
-<p>然后看deallocate(),只是一个protected abstract的模板方法, 子类自行实现.</p>
-<pre><code>    /**
-     * Called once {@link #refCnt()} is equals 0.
-     */
-    protected abstract void deallocate();
-</code></pre><p>release(int decrement)方法实现基本相同.</p>
-<h2 id="touch">touch()方法</h2>
-<p>AbstractReferenceCountedByteBuf中提供了touch()方法的两个空实现, 基本没有任何实际意义:</p>
-<pre><code>@Override
-public ByteBuf touch() {
-    return this;
+</code></pre>
+<p>toLeakAwareBuffer()方法在以下几个地方被调用,都是用来将普通ByteBuf包装为LeakAwareBuffer.</p>
+<ul>
+<li>PooledByteBufAllocator.newDirectBuffer()</li>
+<li>PooledByteBufAllocator.newHeapBuffer()</li>
+<li>UnpooledByteBufAllocator.newDirectBuffer()</li>
+</ul>
+<p>代码类似如下:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> ByteBuf <span class="hljs-title">newDirectBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity, <span class="hljs-keyword">int</span> maxCapacity)</span> </span>{
+    <span class="hljs-comment">// 创建目标ByteBuf</span>
+    ByteBuf buf = ......;
+    <span class="hljs-comment">// 包装为LeakAwareBuffer</span>
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">toLeakAwareBuffer</span><span class="hljs-params">(buf)</span></span>;
 }
-
-@Override
-public ByteBuf touch(Object hint) {
-    return this;
+</code></pre>
+<p>总结: <strong>在使用ByteBufAllocator分配ByteBuf时,netty会根据当前的resource detect level的设置使用对应的AdvancedLeakAwareByteBuf或SimpleLeakAwareByteBuf包装真实的ByteBuf</strong></p>
+<h1 id="">代码实现</h1>
+<h2 id="advancedleakawarebytebuf">AdvancedLeakAwareByteBuf</h2>
+<p>构造函数中传入需要包装的ByteBuf和ResourceLeak对象:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AdvancedLeakAwareByteBuf</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WrappedByteBuf</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ResourceLeak leak;
+    AdvancedLeakAwareByteBuf(ByteBuf buf, ResourceLeak leak) {
+        <span class="hljs-keyword">super</span>(buf);
+        <span class="hljs-keyword">this</span>.leak = leak;
+    }
+    ......
 }
-</code></pre><p>找了一下子类,也没有发现有其他的具体实现,这块有点糊涂(难道netty还没有完成这个touch机制的实现?).</p>
+</code></pre>
+<p>然后几乎所有的方法,都在delegate之前多加一句对leak.record()的调用:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getDouble</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> </span>{
+    leak.record();
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">super</span>.getDouble(index);
+}
+</code></pre>
+<p>然后所有的slice()/duplicate()/readSlice()/order()方法都在返回新的ByteBuf前再次包装成AdvancedLeakAwareByteBuf:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">slice</span><span class="hljs-params">()</span> </span>{
+    leak.record();
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">AdvancedLeakAwareByteBuf</span><span class="hljs-params">(<span class="hljs-keyword">super</span>.slice()</span>, leak)</span>;
+}
+</code></pre>
+<h2 id="simpleleakawarebytebuf">SimpleLeakAwareByteBuf</h2>
+<p>实现方式基本和AdvancedLeakAwareByteBuf相似,但是只有一个方法添加了对leak.record()的调用:</p>
+<ul>
+<li>order(ByteOrder endianness)</li>
+</ul>
 
                     
                     </section>
@@ -564,10 +535,10 @@ public ByteBuf touch(Object hint) {
         </div>
 
         
-        <a href="../buffer/interface_ReferenceCounted.html" class="navigation navigation-prev " aria-label="Previous page: 接口ReferenceCounted"><i class="fa fa-angle-left"></i></a>
+        <a href="../buffer/class_ResourceLeakDetector.html" class="navigation navigation-prev " aria-label="Previous page: 类ResourceLeakDetector"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/buffer_release.html" class="navigation navigation-next " aria-label="Next page: buffer的释放"><i class="fa fa-angle-right"></i></a>
+        <a href="../buffer/zero_copy.html" class="navigation navigation-next " aria-label="Next page: Zero Copy"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

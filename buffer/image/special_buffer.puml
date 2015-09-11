@@ -1,0 +1,9 @@
+@startuml
+ByteBuf             <|--    EmptyByteBuf
+ByteBuf             <|--    SwappedByteBuf
+ByteBuf             <|--    WrappedByteBuf
+
+WrappedByteBuf      <|--    AdvancedLeakAwareByteBuf
+WrappedByteBuf      <|--    SimpleLeakAwareByteBuf
+WrappedByteBuf      <|--    UnreleasableByteBuf
+@enduml
