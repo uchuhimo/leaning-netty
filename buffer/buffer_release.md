@@ -2,7 +2,7 @@ ReferenceCounted的设计和ByteBuf的实现(AbstractReferenceCountedByteBuf)都
 
 但是对于如何使用ByteBuf, 在使用时候应该调用remain()/release()依然是个非常重要的话题。
 
-＃　原则
+# 原则
 
 究竟应该谁，在申明时候来销毁ByteBuf？
 
@@ -14,6 +14,8 @@ ReferenceCounted的设计和ByteBuf的实现(AbstractReferenceCountedByteBuf)都
 
 - 如果组件A把一个引用计数对象传给另一个组件B，那么组件A通常不需要销毁对象，而是把决定权交给组件B
 - 如果一个组件不再访问一个引用计数对象，那么这个组件负责销毁它
+
+# 做法
 
 看了一下[netty中的例子](http://netty.io/wiki/reference-counted-objects.html#wiki-h3-4),对照上面的原则和做法,总结如下.
 
@@ -136,3 +138,11 @@ ByteBuf b(ByteBuf buffer) {}
         return newBuffer;
     }
     ```
+
+# 特殊场景
+
+## 阻止销毁
+
+某些情况下,我们会在将ByteBuf传递出去之后阻止其他人对这个ByteBuf做销毁操作.
+
+netty为此提供了一个特别的类UnreleasableByteBuf.

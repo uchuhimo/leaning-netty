@@ -17,8 +17,6 @@ netty列出了认为酷的特性:
 - There's no need to call the flip() method anymore.
 - It is often faster than ByteBuffer.
 
-TBD:
 
-- [Netty 4.x学习笔记 – ByteBuf](http://hongweiyi.com/2014/01/netty-4-x-bytebuf/)
 
 
