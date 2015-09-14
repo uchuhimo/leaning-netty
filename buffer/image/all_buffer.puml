@@ -5,6 +5,7 @@ AbstractByteBuf     <|--    AbstractReferenceCountedByteBuf
 AbstractByteBuf     <|--    AbstractDerivedByteBuf
 
 AbstractReferenceCountedByteBuf       <|--    CompositeByteBuf
+AbstractReferenceCountedByteBuf       <|--    FixedCompositeByteBuf
 AbstractReferenceCountedByteBuf       <|--    UnpooledDirectByteBuf
 AbstractReferenceCountedByteBuf       <|--    UnpooledHeapByteBuf
 AbstractReferenceCountedByteBuf       <|--    UnpooledUnsafeDirectByteBuf
@@ -17,11 +18,13 @@ PooledByteBuf <|-- PooledDirectByteBuf
 AbstractDerivedByteBuf  <|--    DuplicatedByteBuf
 DuplicatedByteBuf       <|--    PooledDuplicatedByteBuf
 AbstractDerivedByteBuf  <|--    ReadOnlyByteBuf
+ReadOnlyByteBuf         <|--    ReadOnlyUnsafeDirectByteBuf
 AbstractDerivedByteBuf  <|--    SlicedByteBuf
 SlicedByteBuf           <|--    PooledSlicedByteBuf
 
 ByteBuf             <|--    EmptyByteBuf
 ByteBuf             <|--    SwappedByteBuf
+SwappedByteBuf      <|--    UnsafeDirectSwappedByteBuf
 ByteBuf             <|--    WrappedByteBuf
 
 WrappedByteBuf      <|--    AdvancedLeakAwareByteBuf

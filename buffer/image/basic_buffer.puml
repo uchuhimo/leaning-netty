@@ -18,8 +18,12 @@ class AbstractReferenceCountedByteBuf {
 }
 
 AbstractReferenceCountedByteBuf       <|--    CompositeByteBuf
+AbstractReferenceCountedByteBuf       <|--    FixedCompositeByteBuf
 class CompositeByteBuf {
-    - components
+    - List<Component> components
+}
+class FixedCompositeByteBuf {
+    - Object[] buffers
 }
 
 AbstractReferenceCountedByteBuf       <|--    UnpooledDirectByteBuf
