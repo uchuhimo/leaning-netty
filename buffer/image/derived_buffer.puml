@@ -9,6 +9,7 @@ class DuplicatedByteBuf {
 
 DuplicatedByteBuf       <|--    PooledDuplicatedByteBuf
 AbstractDerivedByteBuf  <|--    ReadOnlyByteBuf
+ReadOnlyByteBuf         <|--    ReadOnlyUnsafeDirectByteBuf
 class ReadOnlyByteBuf {
     - ByteBuf buffer
 }

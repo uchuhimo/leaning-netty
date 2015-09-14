@@ -58,11 +58,13 @@ ByteBuf的基础实现类，按照内存分配方式不同分为：
 
 3. CompositeByteBuf
 
-	在Unpooled和Pooled两大阵营之外, CompositeByteBuf是一个超然的存在.
+	在Unpooled和Pooled两大阵营之外, CompositeByteBuf/FixedCompositeByteBuf是一个超然的存在.
 
     CompositeByteBuf是一个虚拟的buffer,将多个buffer展现为一个简单合并的buffer,以便实现netty最重要的特性之一: zero copy.后面有详细分析.
 
-    从类的功能和实现上看, CompositeByteBuf更应该归入后面的ByteBuf衍生
+    FixedCompositeByteBuf功能类似CompositeByteBuf, 以只读的方式包装一个ByteBuf数组,通常用于写入一组ByteBuf的内容.
+
+    注: 从类的功能和实现上看, 感觉CompositeByteBuf更应该归入后面的ByteBuf衍生类.
 
 ## ByteBuf衍生类
 
@@ -79,6 +81,7 @@ Derived ByteBuf有抽象类AbstractDerivedByteBuf作为基类.AbstractDerivedByt
 - DuplicatedByteBuf: 简单的将所有的请求都委托给包装的ByteBuf
 - PooledDuplicatedByteBuf: 在DuplicatedByteBuf的基础上提供池的支持
 - ReadOnlyByteBuf: 将原有ByteBuf包装为只读的ByteBuf, 所有的写方法都被禁止(抛ReadOnlyBufferException)
+- ReadOnlyUnsafeDirectByteBuf: 在ReadOnlyByteBufferBuf的基础上提供对direct ByteBuffer的支持,为了得到最佳性能使用unsafe
 - SlicedByteBuf: 将原有ByteBuf的部分内容拆分出来的ByteBuf,主要是为了实现zero-copy特性,后面有详细介绍
 - PooledSlicedByteBuf: 在SlicedByteBuf的基础上提供池的支持
 
@@ -89,7 +92,7 @@ Derived ByteBuf有抽象类AbstractDerivedByteBuf作为基类.AbstractDerivedByt
 除了上面介绍的ByteBuf的底层实现类和衍生类之外,netty还提供了3种特殊的ByteBuf:
 
 - EmptyByteBuf: 空的ByteBuf, capacity 和 maximum capacity 都被设置为0.
-- SwappedByteBuf: Swap/交换指的是LITTLE_ENDIAN/BIG_ENDIAN之间的交换, SwappedByteBuf用于包装一个ByteBuf,内容相同但是ByteOrder相反.
+- SwappedByteBuf: Swap/交换指的是LITTLE_ENDIAN/BIG_ENDIAN之间的交换, SwappedByteBuf用于包装一个ByteBuf,内容相同但是ByteOrder相反.它的子类UnsafeDirectSwappedByteBuf支持memoryAddress.
 - WrappedByteBuf: WrappedByteBuf顾名思义是用来包装其他ByteBuf的,代码实现也简单: 包装一个ByteBuf,然后所有方法调用委托给被包装的ByteBuf
 
 WrappedByteBuf的主要作用是作为基类派生出下面几个子类:

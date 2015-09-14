@@ -1,7 +1,16 @@
 @startuml
 ByteBuf             <|--    EmptyByteBuf
 ByteBuf             <|--    SwappedByteBuf
+class SwappedByteBuf {
+    - ByteBuf buf;
+    - ByteOrder order;
+}
+SwappedByteBuf      <|--    UnsafeDirectSwappedByteBuf
+
 ByteBuf             <|--    WrappedByteBuf
+class WrappedByteBuf {
+    # ByteBuf buf
+}
 
 WrappedByteBuf      <|--    AdvancedLeakAwareByteBuf
 WrappedByteBuf      <|--    SimpleLeakAwareByteBuf
