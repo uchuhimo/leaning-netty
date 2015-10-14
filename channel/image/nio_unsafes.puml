@@ -1,0 +1,27 @@
+@startuml
+
+Unsafe                  <|--    AbstractUnsafe
+Unsafe                  <|--    NioUnsafe
+AbstractUnsafe          <|--    AbstractNioUnsafe
+NioUnsafe               <|--    AbstractNioUnsafe
+AbstractNioUnsafe       <|--    NioMessageUnsafe
+AbstractNioUnsafe       <|--    NioByteUnsafe
+NioByteUnsafe           <|--    NioSocketChannelUnsafe
+
+interface Unsafe {
+}
+interface NioUnsafe {
+}
+abstract class AbstractUnsafe {
+}
+abstract class AbstractNioUnsafe {
+}
+class NioMessageUnsafe {
+}
+class NioByteUnsafe {
+}
+class NioSocketChannelUnsafe {
+}
+
+
+@enduml

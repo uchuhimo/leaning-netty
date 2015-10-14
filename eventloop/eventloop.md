@@ -1,0 +1,5 @@
+EventLoop和EventLoopGroup这两个接口的定义有些复杂,不仅它们之间有令人疑惑的继承关系,而且它们还各自从EventExecutor和EventExecutorGroup中继承:
+
+![eventloop](./image/eventloop.png)
+
+先分析EventExecutor和EventExecutorGroup,然后再继续看EventLoop和EventLoopGroup.
