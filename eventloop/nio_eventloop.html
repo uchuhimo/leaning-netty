@@ -5,7 +5,7 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>接口ReferenceCounted | Leaning Netty</title>
+        <title>NIO EventLoop | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/class_AbstractReferenceCountedByteBuf.html" />
+    <link rel="next" href="../eventloop/jdk_executor.html" />
     
     
-    <link rel="prev" href="../buffer/reference_count.html" />
+    <link rel="prev" href="../eventloop/interface_EventLoop.html" />
     
 
         
@@ -34,7 +34,7 @@
 
 
         
-    <div class="book" data-level="1.2.2.1" data-basepath=".." data-revision="1444837012028">
+    <div class="book" data-level="3.3" data-basepath=".." data-revision="1444837012028">
     
 
 <div class="book-summary">
@@ -149,7 +149,7 @@
                 
     
         
-        <li class="chapter active" data-level="1.2.2.1" data-path="buffer/interface_ReferenceCounted.html">
+        <li class="chapter " data-level="1.2.2.1" data-path="buffer/interface_ReferenceCounted.html">
             
                 
                     <a href="../buffer/interface_ReferenceCounted.html">
@@ -481,7 +481,7 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3" data-path="eventloop/nio_eventloop.html">
+        <li class="chapter active" data-level="3.3" data-path="eventloop/nio_eventloop.html">
             
                 
                     <a href="../eventloop/nio_eventloop.html">
@@ -606,36 +606,26 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_13">
+                    <section class="normal" id="section-gitbook_27">
                     
-                        <p>接口ReferenceCounted用于实现引用计数,以便显式回收.</p>
-<p>定义在package io.netty.util中:</p>
-<pre><code>package io.netty.util;
-
-public interface ReferenceCounted {}
-</code></pre><h1 id="">原理</h1>
-<p>ReferenceCounted的工作原理: 当引用计数对象被初始化时, 引用计数器从1开始计数. retain()方法增加引用计数,而release()方法减少引用计数.如果引用计数被减到0,则这个对象就将被显式回收,而访问被回收的对象将通常会导致访问违规.</p>
-<p>如果一个实现引用计数的对象是一个包含其他实现了引用计数的容器, 那么当容器的引用计数变成0时, 被包含的对象也应该通过release()方法释放一个引用.</p>
-<h1 id="">方法定义</h1>
-<p>接口ReferenceCounted中定义了以下方法:</p>
+                        <p>NioEventLoop是一个SingleThreadEventLoop的实现, 将每个Channel注册到NIO Selector并执行multiplexing.</p>
+<h1 id="nioeventloop">NioEventLoop的类继承结构</h1>
+<p><img src="image/nio_eventloop.png" alt=""></p>
+<p>NioEventLoop的类继承结构比较深,继承结构中比较关键的是:</p>
 <ul>
-<li>int refCnt()
-  返回对象的引用计数.<strong>如果返回0,意味着对象已经被回收.</strong></li>
-<li>ReferenceCounted retain()
-  将引用计数增加1</li>
-<li>ReferenceCounted retain(int increment)
-  将引用计数增加指定数量</li>
-<li>boolean release()
-  将引用计数减一, 如果引用计数达到0则回收这个对象.
-  <strong>注意: 返回的boolean值, 当且仅当引用计数变成0并且这个对象被回收才返回true.</strong></li>
-<li>boolean release(int decrement)
-  同上,将引用计数减少指定数量</li>
-<li>ReferenceCounted touch(Object hint)
-  出于调试目的,用一个额外的任意的(arbitrary)信息记录这个对象的当前访问地址. 如果这个对象被检测到泄露了, 这个操作记录的信息将通过ResourceLeakDetector提供.</li>
-<li>ReferenceCounted touch()
-  这个方法等价于touch(null).</li>
+<li>AbstractScheduledEventExecutor: netty的EventExecutor,提供对定时任务的支持</li>
+<li>SingleThreadEventExecutor: 在单个线程中执行所有提交的任务</li>
+<li>SingleThreadEventLoop: 单线程版本的EventLoop</li>
 </ul>
-<p>注意除了refCnt()方法之外,其他的几个方法都是返回ReferenceCounted对象. 实现中一般时返回当前对象本身,以便实现链式(train)调用.</p>
+<p>这里可以得到一个重要的信息: <strong>NioEventLoop时用单线程来处理NIO任务的! </strong></p>
+<p>在这个多层的继承结构中:</p>
+<ol>
+<li>ExecutorService/AbstractExecutorService 是属于JDK的代码, 著名的JDK Executor, package是&quot;java.util.concurrent&quot;</li>
+<li>AbstractEventExecutor/AbstractScheduledEventExecutor/SingleThreadEventExecutor 是属于netty util的通用类, package 是 &quot;io.netty.util.concurrent&quot;</li>
+<li>SingleThreadEventLoop 是属于netty的通用的event loop实现基类, package是&quot;io.netty.channel&quot;</li>
+<li>NioEventLoop是属于netty的基于NIO的event loop实现类, package是&quot;io.netty.channel.nio&quot;</li>
+</ol>
+<p>后面我们从上到下来研究具体的代码实现.</p>
 
                     
                     </section>
@@ -646,10 +636,10 @@ public interface ReferenceCounted {}
         </div>
 
         
-        <a href="../buffer/reference_count.html" class="navigation navigation-prev " aria-label="Previous page: Reference Count"><i class="fa fa-angle-left"></i></a>
+        <a href="../eventloop/interface_EventLoop.html" class="navigation navigation-prev " aria-label="Previous page: 接口EventLoop"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/class_AbstractReferenceCountedByteBuf.html" class="navigation navigation-next " aria-label="Next page: 类AbstractReferenceCountedByteBuf"><i class="fa fa-angle-right"></i></a>
+        <a href="../eventloop/jdk_executor.html" class="navigation navigation-next " aria-label="Next page: 温习JDK Executor"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

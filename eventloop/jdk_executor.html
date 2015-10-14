@@ -5,7 +5,7 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>接口ReferenceCounted | Leaning Netty</title>
+        <title>温习JDK Executor | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,8 @@
         
     
     
-    <link rel="next" href="../buffer/class_AbstractReferenceCountedByteBuf.html" />
     
-    
-    <link rel="prev" href="../buffer/reference_count.html" />
+    <link rel="prev" href="../eventloop/nio_eventloop.html" />
     
 
         
@@ -34,7 +32,7 @@
 
 
         
-    <div class="book" data-level="1.2.2.1" data-basepath=".." data-revision="1444837012028">
+    <div class="book" data-level="3.4" data-basepath=".." data-revision="1444837012028">
     
 
 <div class="book-summary">
@@ -149,7 +147,7 @@
                 
     
         
-        <li class="chapter active" data-level="1.2.2.1" data-path="buffer/interface_ReferenceCounted.html">
+        <li class="chapter " data-level="1.2.2.1" data-path="buffer/interface_ReferenceCounted.html">
             
                 
                     <a href="../buffer/interface_ReferenceCounted.html">
@@ -497,7 +495,7 @@
         </li>
     
         
-        <li class="chapter " data-level="3.4" data-path="eventloop/jdk_executor.html">
+        <li class="chapter active" data-level="3.4" data-path="eventloop/jdk_executor.html">
             
                 
                     <a href="../eventloop/jdk_executor.html">
@@ -606,36 +604,102 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_13">
+                    <section class="normal" id="section-gitbook_26">
                     
-                        <p>接口ReferenceCounted用于实现引用计数,以便显式回收.</p>
-<p>定义在package io.netty.util中:</p>
-<pre><code>package io.netty.util;
+                        <p>在NioEventLoop的类继承机构中, 位于最上端的是ExecutorService/AbstractExecutorService,这是属于JDK的代码, 著名的JDK Executor框架.</p>
+<p>在研究netty的NioEventLoop之前, 先重温一下JDK Executor的基础代码.</p>
+<h1 id="executor">Executor</h1>
+<p>大名鼎鼎的JDK Executor, 它的接口定义其实非常简单,就一个execute()方法:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">package</span> java.util.concurrent;
 
-public interface ReferenceCounted {}
-</code></pre><h1 id="">原理</h1>
-<p>ReferenceCounted的工作原理: 当引用计数对象被初始化时, 引用计数器从1开始计数. retain()方法增加引用计数,而release()方法减少引用计数.如果引用计数被减到0,则这个对象就将被显式回收,而访问被回收的对象将通常会导致访问违规.</p>
-<p>如果一个实现引用计数的对象是一个包含其他实现了引用计数的容器, 那么当容器的引用计数变成0时, 被包含的对象也应该通过release()方法释放一个引用.</p>
-<h1 id="">方法定义</h1>
-<p>接口ReferenceCounted中定义了以下方法:</p>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Executor</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(Runnable command)</span></span>;
+}
+</code></pre>
+<p>传入的Runnable对象代表需要执行的命令, 但是注意Executor接口并没有定义这个命令的执行方式, 因此这个命令有可能被多种方式执行:</p>
 <ul>
-<li>int refCnt()
-  返回对象的引用计数.<strong>如果返回0,意味着对象已经被回收.</strong></li>
-<li>ReferenceCounted retain()
-  将引用计数增加1</li>
-<li>ReferenceCounted retain(int increment)
-  将引用计数增加指定数量</li>
-<li>boolean release()
-  将引用计数减一, 如果引用计数达到0则回收这个对象.
-  <strong>注意: 返回的boolean值, 当且仅当引用计数变成0并且这个对象被回收才返回true.</strong></li>
-<li>boolean release(int decrement)
-  同上,将引用计数减少指定数量</li>
-<li>ReferenceCounted touch(Object hint)
-  出于调试目的,用一个额外的任意的(arbitrary)信息记录这个对象的当前访问地址. 如果这个对象被检测到泄露了, 这个操作记录的信息将通过ResourceLeakDetector提供.</li>
-<li>ReferenceCounted touch()
-  这个方法等价于touch(null).</li>
+<li>最简单的同步方式, 直接被调用这个execute()方法的线程执行</li>
+<li>异步方式, 启动一个新的线程来执行这个命令</li>
+<li>带线程池的异步方式, 从线程池中取出一个空闲线程来执行这个命令,执行完毕之后归还线程到线程池</li>
+<li>线程池的实现可能有多种, 比如只有单个工作线程和有多个工作线程</li>
+<li>支持定时任务的实现, 可以在内部保存要求执行的命令, 等到任务执行条件满足后再执行命令</li>
 </ul>
-<p>注意除了refCnt()方法之外,其他的几个方法都是返回ReferenceCounted对象. 实现中一般时返回当前对象本身,以便实现链式(train)调用.</p>
+<p>而这些具体执行方式是交给Executor的实现类来实现, 对于调用者只需要选择调用不同的实现类即可轻松实现在多种方式中间选择和切换, 甚至可以不关心具体到底是用什么实现类, 直接针对Executor接口编程.</p>
+<p>这样就轻松的将&quot;任务的执行内容&quot;(比如删除一条记录)和&quot;任务的执行方式&quot;(同步/异步/用线程池/5分钟后再执行)在代码上实现隔离和解耦.</p>
+<h1 id="executorservice">ExecutorService</h1>
+<p>Executor接口只定义了一个简单的execute()方法, 而ExecutorService在Executor的基础上做了扩展:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ExecutorService</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Executor</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">shutdown</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-function">List&lt;Runnable&gt; <span class="hljs-title">shutdownNow</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isShutdown</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isTerminated</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">awaitTermination</span><span class="hljs-params">(<span class="hljs-keyword">long</span> timeout, TimeUnit unit)</span> <span class="hljs-keyword">throws</span> InterruptedException</span>;
+
+    &lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Callable&lt;T&gt; task)</span></span>;
+    &lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Runnable task, T result)</span></span>;
+    Future&lt;?&gt; submit(Runnable task);
+
+    &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(Collection&lt;? extends Callable&lt;T&gt;&gt; tasks) <span class="hljs-keyword">throws</span> InterruptedException;
+    &lt;T&gt; List&lt;Future&lt;T&gt;&gt; invokeAll(Collection&lt;? extends Callable&lt;T&gt;&gt; tasks, <span class="hljs-keyword">long</span> timeout, TimeUnit unit) <span class="hljs-keyword">throws</span> InterruptedException;
+    &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">invokeAny</span><span class="hljs-params">(Collection&lt;? extends Callable&lt;T&gt;&gt; tasks)</span> <span class="hljs-keyword">throws</span> InterruptedException, ExecutionException</span>;
+    &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">invokeAny</span><span class="hljs-params">(Collection&lt;? extends Callable&lt;T&gt;&gt; tasks, <span class="hljs-keyword">long</span> timeout, TimeUnit unit)</span> <span class="hljs-keyword">throws</span> InterruptedException, ExecutionException, TimeoutException</span>;
+}
+</code></pre>
+<p>ExecutorService定义的方法包括:</p>
+<ol>
+<li>和关闭相关的方法
+ 包括shutdown()/shutdownNow()/isShutdown()/isTerminated()/awaitTermination().</li>
+<li>提交任务的方法
+ 包括3个submit()方法, 提供对Future的支持 (注意execute()方法返回void)</li>
+<li>执行任务的方法
+ 包括invokeAll()和invokeAny()</li>
+</ol>
+<p>在这里我们跳过shutdown和invoke的方法, 重点看任务执行的方法submit()/execute().</p>
+<p>注意这里出现了两个接口用来表示任务或者命令, 除了之前Executor中用到的Runnable之外,ExecutorService还支持Callable接口:</p>
+<ul>
+<li><p>Runnable接口</p>
+<p>  Runnable接口只定义了一个run()方法, 注意它的返回值是void.</p>
+<pre><code class="lang-java">  <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Runnable</span> </span>{
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span></span>;
+  }
+</code></pre>
+</li>
+<li><p>Callable接口</p>
+<p>  Callable接口和Runnable接口最大的不同在于Callable的call()可以返回一个结果, 另外容许定义抛出受查异常:</p>
+<pre><code class="lang-java">  <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Callable</span>&lt;<span class="hljs-title">V</span>&gt; </span>{
+      <span class="hljs-function">V <span class="hljs-title">call</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>;
+  }
+</code></pre>
+</li>
+</ul>
+<p>ExecutorService中定义的三个submit()方法, 都支持返回结果, 而且是通过Future可以实现异步不阻塞.</p>
+<ol>
+<li><T> Future<T> submit(Callable<T> task)
+ 用Callable接口来提交任务, 返回的类型是Future<T>, 支持泛型和Future</li>
+<li><T> Future<T> submit(Runnable task, T result)
+ 用Runnable接口来提交任务, 由于Runnable接口无法表示返回类型, 因此多增加一个result参数.</li>
+<li>Future&lt; ? &gt; submit(Runnable task)
+ 用Runnable接口来提交任务, 无返回值.</li>
+</ol>
+<p>继续看AbstractExecutorService的代码,看这三个submit()方法具体是如何实现的.</p>
+<h1 id="abstractexecutorservice">AbstractExecutorService</h1>
+<p>AbstractExecutorService的类定义,申明实现ExecutorService接口:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractExecutorService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ExecutorService</span> </span>{}
+</code></pre>
+<p>先看submit(Callable)方法的实现:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Callable&lt;T&gt; task)</span> </span>{
+    <span class="hljs-keyword">if</span> (task == <span class="hljs-keyword">null</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException();
+    RunnableFuture&lt;T&gt; ftask = newTaskFor(task);
+    execute(ftask);
+    <span class="hljs-keyword">return</span> ftask;
+}
+</code></pre>
+<p>这里去掉检查task为null的fail fast代码之外, 剩下的三行代码做了三件事情:</p>
+<ol>
+<li>newTaskFor()方法将Callable类型的task包装为RunnableFuture</li>
+<li>调用execute(ftask)方法执行任务</li>
+<li>返回任务执行的结果</li>
+</ol>
 
                     
                     </section>
@@ -646,10 +710,8 @@ public interface ReferenceCounted {}
         </div>
 
         
-        <a href="../buffer/reference_count.html" class="navigation navigation-prev " aria-label="Previous page: Reference Count"><i class="fa fa-angle-left"></i></a>
+        <a href="../eventloop/nio_eventloop.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: NIO EventLoop"><i class="fa fa-angle-left"></i></a>
         
-        
-        <a href="../buffer/class_AbstractReferenceCountedByteBuf.html" class="navigation navigation-next " aria-label="Next page: 类AbstractReferenceCountedByteBuf"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
