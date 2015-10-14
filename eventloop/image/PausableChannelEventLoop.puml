@@ -1,0 +1,15 @@
+@startuml
+interface EventLoop
+interface EventExecutor
+
+
+EventExecutor           <|--            PausableEventExecutor
+PausableEventExecutor   <|--            PausableChannelEventExecutor
+PausableChannelEventExecutor    <|--    PausableChannelEventLoop
+EventLoop               <|-left-        PausableChannelEventLoop
+abstract class PausableChannelEventExecutor
+class PausableChannelEventLoop
+interface PausableEventExecutor
+
+
+@enduml
