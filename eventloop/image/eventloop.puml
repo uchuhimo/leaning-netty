@@ -1,0 +1,26 @@
+@startuml
+
+ScheduledExecutorService            <|--    EventExecutorGroup
+AutoCloseable                       <|--    EventExecutorGroup
+EventExecutorGroup                  <|--    EventExecutor
+
+EventExecutorGroup                  <|--    EventLoopGroup
+
+EventLoopGroup                      <|--    EventLoop
+EventExecutor                       <|--    EventLoop
+
+interface ScheduledExecutorService {
+}
+interface AutoCloseable {
+}
+interface EventExecutorGroup {
+}
+interface EventLoopGroup {
+}
+interface EventExecutor {
+}
+interface EventLoop {
+}
+
+
+@enduml

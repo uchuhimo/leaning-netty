@@ -5,22 +5,24 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Introduction | Leaning Netty</title>
+        <title>Channel Unsafe | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="the records in leaning netty">
+        <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
         <meta name="HandheldFriendly" content="true"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
-        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
-        <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
         
         
     
     
-    <link rel="next" href="./buffer/buffer.html" />
+    <link rel="next" href="../eventloop/eventloop.html" />
     
+    
+    <link rel="prev" href="../channel/class_AbstractChannel.html" />
     
 
         
@@ -28,11 +30,11 @@
     <body>
         
         
-<link rel="stylesheet" href="gitbook/style.css">
+<link rel="stylesheet" href="../gitbook/style.css">
 
 
         
-    <div class="book" data-level="0" data-basepath="." data-revision="1444804505488">
+    <div class="book" data-level="2.3" data-basepath=".." data-revision="1444804505488">
     
 
 <div class="book-summary">
@@ -50,10 +52,10 @@
         
     
         
-        <li class="chapter active" data-level="0" data-path="index.html">
+        <li class="chapter " data-level="0" data-path="index.html">
             
                 
-                    <a href="./index.html">
+                    <a href="../index.html">
                         <i class="fa fa-check"></i>
                         
                          Introduction
@@ -67,7 +69,7 @@
         <li class="chapter " data-level="1" data-path="buffer/buffer.html">
             
                 
-                    <a href="./buffer/buffer.html">
+                    <a href="../buffer/buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.</b>
@@ -84,7 +86,7 @@
         <li class="chapter " data-level="1.1" data-path="buffer/inheritance.html">
             
                 
-                    <a href="./buffer/inheritance.html">
+                    <a href="../buffer/inheritance.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.1.</b>
@@ -100,7 +102,7 @@
         <li class="chapter " data-level="1.2" data-path="buffer/important_features.html">
             
                 
-                    <a href="./buffer/important_features.html">
+                    <a href="../buffer/important_features.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.</b>
@@ -117,7 +119,7 @@
         <li class="chapter " data-level="1.2.1" data-path="buffer/pooled_buffer.html">
             
                 
-                    <a href="./buffer/pooled_buffer.html">
+                    <a href="../buffer/pooled_buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.1.</b>
@@ -133,7 +135,7 @@
         <li class="chapter " data-level="1.2.2" data-path="buffer/reference_count.html">
             
                 
-                    <a href="./buffer/reference_count.html">
+                    <a href="../buffer/reference_count.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.</b>
@@ -150,7 +152,7 @@
         <li class="chapter " data-level="1.2.2.1" data-path="buffer/interface_ReferenceCounted.html">
             
                 
-                    <a href="./buffer/interface_ReferenceCounted.html">
+                    <a href="../buffer/interface_ReferenceCounted.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.1.</b>
@@ -166,7 +168,7 @@
         <li class="chapter " data-level="1.2.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
             
                 
-                    <a href="./buffer/class_AbstractReferenceCountedByteBuf.html">
+                    <a href="../buffer/class_AbstractReferenceCountedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.2.</b>
@@ -182,7 +184,7 @@
         <li class="chapter " data-level="1.2.2.3" data-path="buffer/buffer_release.html">
             
                 
-                    <a href="./buffer/buffer_release.html">
+                    <a href="../buffer/buffer_release.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.3.</b>
@@ -198,7 +200,7 @@
         <li class="chapter " data-level="1.2.2.4" data-path="buffer/class_UnreleasableByteBuf.html">
             
                 
-                    <a href="./buffer/class_UnreleasableByteBuf.html">
+                    <a href="../buffer/class_UnreleasableByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.4.</b>
@@ -214,7 +216,7 @@
         <li class="chapter " data-level="1.2.2.5" data-path="buffer/lack_detection.html">
             
                 
-                    <a href="./buffer/lack_detection.html">
+                    <a href="../buffer/lack_detection.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.5.</b>
@@ -230,7 +232,7 @@
         <li class="chapter " data-level="1.2.2.6" data-path="buffer/class_ResourceLeakDetector.html">
             
                 
-                    <a href="./buffer/class_ResourceLeakDetector.html">
+                    <a href="../buffer/class_ResourceLeakDetector.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.6.</b>
@@ -246,7 +248,7 @@
         <li class="chapter " data-level="1.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
             
                 
-                    <a href="./buffer/class_LeakAwareByteBuf.html">
+                    <a href="../buffer/class_LeakAwareByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.7.</b>
@@ -267,7 +269,7 @@
         <li class="chapter " data-level="1.2.3" data-path="buffer/zero_copy.html">
             
                 
-                    <a href="./buffer/zero_copy.html">
+                    <a href="../buffer/zero_copy.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.</b>
@@ -284,7 +286,7 @@
         <li class="chapter " data-level="1.2.3.1" data-path="buffer/class_SlicedByteBuf.html">
             
                 
-                    <a href="./buffer/class_SlicedByteBuf.html">
+                    <a href="../buffer/class_SlicedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.1.</b>
@@ -300,7 +302,7 @@
         <li class="chapter " data-level="1.2.3.2" data-path="buffer/unpooled_wapped.html">
             
                 
-                    <a href="./buffer/unpooled_wapped.html">
+                    <a href="../buffer/unpooled_wapped.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.2.</b>
@@ -316,7 +318,7 @@
         <li class="chapter " data-level="1.2.3.3" data-path="buffer/class_CompositeByteBuf.html">
             
                 
-                    <a href="./buffer/class_CompositeByteBuf.html">
+                    <a href="../buffer/class_CompositeByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.3.</b>
@@ -342,7 +344,7 @@
         <li class="chapter " data-level="1.3" data-path="buffer/code_analyze.html">
             
                 
-                    <a href="./buffer/code_analyze.html">
+                    <a href="../buffer/code_analyze.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.3.</b>
@@ -363,7 +365,7 @@
         <li class="chapter " data-level="2" data-path="channel/channel.html">
             
                 
-                    <a href="./channel/channel.html">
+                    <a href="../channel/channel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.</b>
@@ -380,7 +382,7 @@
         <li class="chapter " data-level="2.1" data-path="channel/interface_Channel.html">
             
                 
-                    <a href="./channel/interface_Channel.html">
+                    <a href="../channel/interface_Channel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.1.</b>
@@ -396,7 +398,7 @@
         <li class="chapter " data-level="2.2" data-path="channel/class_AbstractChannel.html">
             
                 
-                    <a href="./channel/class_AbstractChannel.html">
+                    <a href="../channel/class_AbstractChannel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.2.</b>
@@ -409,10 +411,10 @@
         </li>
     
         
-        <li class="chapter " data-level="2.3" data-path="channel/interface_Unsafe.html">
+        <li class="chapter active" data-level="2.3" data-path="channel/interface_Unsafe.html">
             
                 
-                    <a href="./channel/interface_Unsafe.html">
+                    <a href="../channel/interface_Unsafe.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.3.</b>
@@ -433,7 +435,7 @@
         <li class="chapter " data-level="3" data-path="eventloop/eventloop.html">
             
                 
-                    <a href="./eventloop/eventloop.html">
+                    <a href="../eventloop/eventloop.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.</b>
@@ -450,7 +452,7 @@
         <li class="chapter " data-level="3.1" data-path="eventloop/interface_EventExecutor.html">
             
                 
-                    <a href="./eventloop/interface_EventExecutor.html">
+                    <a href="../eventloop/interface_EventExecutor.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.1.</b>
@@ -466,7 +468,7 @@
         <li class="chapter " data-level="3.2" data-path="eventloop/interface_EventLoop.html">
             
                 
-                    <a href="./eventloop/interface_EventLoop.html">
+                    <a href="../eventloop/interface_EventLoop.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.2.</b>
@@ -564,7 +566,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="./" >Leaning Netty</a>
+        <a href="../" >Leaning Netty</a>
     </h1>
 </div>
 
@@ -572,12 +574,76 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_1">
+                    <section class="normal" id="section-gitbook_22">
                     
-                        <h1 id="leaning-netty">leaning-netty</h1>
-<p>Netty学习笔记, 包括代码学习,源码分析.基于最新的netty5.</p>
-<p>笔记格式基于markdown语法, 采用gitbook组织内容.</p>
-<p>阅读版本的HTML内容请点击 <a href="http://skyao.github.io/leaning-netty/" target="_blank">这里</a>.</p>
+                        <p>前面谈到在Channel接口内部定义了一个Unsafe接口, 然后有部分方法是直接delagate给unsafe的:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isWritable</span><span class="hljs-params">()</span> </span>{
+    ChannelOutboundBuffer buf = unsafe.outboundBuffer();
+    <span class="hljs-keyword">return</span> buf != <span class="hljs-keyword">null</span> &amp;&amp; buf.isWritable();
+}
+</code></pre>
+<h1 id="unsafe">Unsafe的概念</h1>
+<p>Unsafe 是内部接口, 从设计上说这个接口的所有实现都是netty的内部代码,只能被netty自己使用. <strong>netty的使用者时不应该</strong> 直接调用这些内部实现的.</p>
+<p>Unsafe的javadoc是这样要求的:</p>
+<blockquote>
+<p>Unsafe operations that should <strong>never</strong> be called from user-code. These methods are only provided to implement the actual transport, and must be invoked from an I/O thread except for the following methods:</p>
+</blockquote>
+<p><strong>Unsafe 操作不能被用户代码调用.这些方法仅仅用于实现具体的transport, 而且必须被I/O线程调用.</strong></p>
+<p>以下方法例外(可以在I/O线程之外被调用):</p>
+<ul>
+<li>invoker()</li>
+<li>localAddress()</li>
+<li>remoteAddress()</li>
+<li>closeForcibly()</li>
+<li>register(EventLoop, ChannelPromise)</li>
+<li>deregister(ChannelPromise)</li>
+<li>voidPromise()</li>
+</ul>
+<h1 id="unsafe-">Unsafe 接口定义</h1>
+<h2 id="unsafe">Unsafe定义的方法</h2>
+<p>Unsafe接口中定义了以下方法:</p>
+<h3 id="">获取特殊属性</h3>
+<ul>
+<li>RecvByteBufAllocator.Handle recvBufAllocHandle()</li>
+<li>ChannelHandlerInvoker invoker()</li>
+<li>ChannelOutboundBuffer outboundBuffer()</li>
+<li>ChannelPromise voidPromise()</li>
+</ul>
+<h3 id="">获取网络参数</h3>
+<ul>
+<li>SocketAddress localAddress()</li>
+<li>SocketAddress remoteAddress()</li>
+</ul>
+<h3 id="eventloop">注册到EventLoop</h3>
+<ul>
+<li>void register(EventLoop eventLoop, ChannelPromise promise)</li>
+<li>void deregister(ChannelPromise promise)</li>
+</ul>
+<h3 id="io">IO操作</h3>
+<ul>
+<li>void bind(SocketAddress localAddress, ChannelPromise promise)</li>
+<li>void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise)</li>
+<li>void disconnect(ChannelPromise promise)</li>
+<li>void close(ChannelPromise promise)</li>
+<li>void closeForcibly()</li>
+<li>void beginRead()</li>
+<li>void write(Object msg, ChannelPromise promise)</li>
+<li>void flush()</li>
+</ul>
+<h1 id="unsafe">Unsafe的实现</h1>
+<h2 id="unsafe">Unsafe的继承结构</h2>
+<p>以nio unsafe为例:</p>
+<p><img src="image/nio_unsafes.png" alt="nio unsafe"></p>
+<h2 id="abstractunsafe">AbstractUnsafe</h2>
+<p>在AbstractChannel中定义有内部类AbstractUnsafe, 按照javadoc的说明, 所有的Unsafe的实现都必须从AbstractUnsafe继承:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractChannel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">DefaultAttributeMap</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Channel</span> </span>{
+    <span class="hljs-javadoc">/**
+     * {@link Unsafe} implementation which sub-classes must extend and use.
+     */</span>
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractUnsafe</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Unsafe</span> </span>{
+    }
+}
+</code></pre>
 
                     
                     </section>
@@ -588,21 +654,23 @@
         </div>
 
         
+        <a href="../channel/class_AbstractChannel.html" class="navigation navigation-prev " aria-label="Previous page: 类AbstractChannel"><i class="fa fa-angle-left"></i></a>
         
-        <a href="./buffer/buffer.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Buffer"><i class="fa fa-angle-right"></i></a>
+        
+        <a href="../eventloop/eventloop.html" class="navigation navigation-next " aria-label="Next page: Eventloop"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
 
         
-<script src="gitbook/app.js"></script>
+<script src="../gitbook/app.js"></script>
 
     
     <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
     
-    <script src="gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
     
 
 <script>

@@ -5,22 +5,24 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Introduction | Leaning Netty</title>
+        <title>接口EventExecutor | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="the records in leaning netty">
+        <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
         <meta name="HandheldFriendly" content="true"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
-        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
-        <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
         
         
     
     
-    <link rel="next" href="./buffer/buffer.html" />
+    <link rel="next" href="../eventloop/interface_EventLoop.html" />
     
+    
+    <link rel="prev" href="../eventloop/eventloop.html" />
     
 
         
@@ -28,11 +30,11 @@
     <body>
         
         
-<link rel="stylesheet" href="gitbook/style.css">
+<link rel="stylesheet" href="../gitbook/style.css">
 
 
         
-    <div class="book" data-level="0" data-basepath="." data-revision="1444804505488">
+    <div class="book" data-level="3.1" data-basepath=".." data-revision="1444804505488">
     
 
 <div class="book-summary">
@@ -50,10 +52,10 @@
         
     
         
-        <li class="chapter active" data-level="0" data-path="index.html">
+        <li class="chapter " data-level="0" data-path="index.html">
             
                 
-                    <a href="./index.html">
+                    <a href="../index.html">
                         <i class="fa fa-check"></i>
                         
                          Introduction
@@ -67,7 +69,7 @@
         <li class="chapter " data-level="1" data-path="buffer/buffer.html">
             
                 
-                    <a href="./buffer/buffer.html">
+                    <a href="../buffer/buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.</b>
@@ -84,7 +86,7 @@
         <li class="chapter " data-level="1.1" data-path="buffer/inheritance.html">
             
                 
-                    <a href="./buffer/inheritance.html">
+                    <a href="../buffer/inheritance.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.1.</b>
@@ -100,7 +102,7 @@
         <li class="chapter " data-level="1.2" data-path="buffer/important_features.html">
             
                 
-                    <a href="./buffer/important_features.html">
+                    <a href="../buffer/important_features.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.</b>
@@ -117,7 +119,7 @@
         <li class="chapter " data-level="1.2.1" data-path="buffer/pooled_buffer.html">
             
                 
-                    <a href="./buffer/pooled_buffer.html">
+                    <a href="../buffer/pooled_buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.1.</b>
@@ -133,7 +135,7 @@
         <li class="chapter " data-level="1.2.2" data-path="buffer/reference_count.html">
             
                 
-                    <a href="./buffer/reference_count.html">
+                    <a href="../buffer/reference_count.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.</b>
@@ -150,7 +152,7 @@
         <li class="chapter " data-level="1.2.2.1" data-path="buffer/interface_ReferenceCounted.html">
             
                 
-                    <a href="./buffer/interface_ReferenceCounted.html">
+                    <a href="../buffer/interface_ReferenceCounted.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.1.</b>
@@ -166,7 +168,7 @@
         <li class="chapter " data-level="1.2.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
             
                 
-                    <a href="./buffer/class_AbstractReferenceCountedByteBuf.html">
+                    <a href="../buffer/class_AbstractReferenceCountedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.2.</b>
@@ -182,7 +184,7 @@
         <li class="chapter " data-level="1.2.2.3" data-path="buffer/buffer_release.html">
             
                 
-                    <a href="./buffer/buffer_release.html">
+                    <a href="../buffer/buffer_release.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.3.</b>
@@ -198,7 +200,7 @@
         <li class="chapter " data-level="1.2.2.4" data-path="buffer/class_UnreleasableByteBuf.html">
             
                 
-                    <a href="./buffer/class_UnreleasableByteBuf.html">
+                    <a href="../buffer/class_UnreleasableByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.4.</b>
@@ -214,7 +216,7 @@
         <li class="chapter " data-level="1.2.2.5" data-path="buffer/lack_detection.html">
             
                 
-                    <a href="./buffer/lack_detection.html">
+                    <a href="../buffer/lack_detection.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.5.</b>
@@ -230,7 +232,7 @@
         <li class="chapter " data-level="1.2.2.6" data-path="buffer/class_ResourceLeakDetector.html">
             
                 
-                    <a href="./buffer/class_ResourceLeakDetector.html">
+                    <a href="../buffer/class_ResourceLeakDetector.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.6.</b>
@@ -246,7 +248,7 @@
         <li class="chapter " data-level="1.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
             
                 
-                    <a href="./buffer/class_LeakAwareByteBuf.html">
+                    <a href="../buffer/class_LeakAwareByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.7.</b>
@@ -267,7 +269,7 @@
         <li class="chapter " data-level="1.2.3" data-path="buffer/zero_copy.html">
             
                 
-                    <a href="./buffer/zero_copy.html">
+                    <a href="../buffer/zero_copy.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.</b>
@@ -284,7 +286,7 @@
         <li class="chapter " data-level="1.2.3.1" data-path="buffer/class_SlicedByteBuf.html">
             
                 
-                    <a href="./buffer/class_SlicedByteBuf.html">
+                    <a href="../buffer/class_SlicedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.1.</b>
@@ -300,7 +302,7 @@
         <li class="chapter " data-level="1.2.3.2" data-path="buffer/unpooled_wapped.html">
             
                 
-                    <a href="./buffer/unpooled_wapped.html">
+                    <a href="../buffer/unpooled_wapped.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.2.</b>
@@ -316,7 +318,7 @@
         <li class="chapter " data-level="1.2.3.3" data-path="buffer/class_CompositeByteBuf.html">
             
                 
-                    <a href="./buffer/class_CompositeByteBuf.html">
+                    <a href="../buffer/class_CompositeByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.3.</b>
@@ -342,7 +344,7 @@
         <li class="chapter " data-level="1.3" data-path="buffer/code_analyze.html">
             
                 
-                    <a href="./buffer/code_analyze.html">
+                    <a href="../buffer/code_analyze.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.3.</b>
@@ -363,7 +365,7 @@
         <li class="chapter " data-level="2" data-path="channel/channel.html">
             
                 
-                    <a href="./channel/channel.html">
+                    <a href="../channel/channel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.</b>
@@ -380,7 +382,7 @@
         <li class="chapter " data-level="2.1" data-path="channel/interface_Channel.html">
             
                 
-                    <a href="./channel/interface_Channel.html">
+                    <a href="../channel/interface_Channel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.1.</b>
@@ -396,7 +398,7 @@
         <li class="chapter " data-level="2.2" data-path="channel/class_AbstractChannel.html">
             
                 
-                    <a href="./channel/class_AbstractChannel.html">
+                    <a href="../channel/class_AbstractChannel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.2.</b>
@@ -412,7 +414,7 @@
         <li class="chapter " data-level="2.3" data-path="channel/interface_Unsafe.html">
             
                 
-                    <a href="./channel/interface_Unsafe.html">
+                    <a href="../channel/interface_Unsafe.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.3.</b>
@@ -433,7 +435,7 @@
         <li class="chapter " data-level="3" data-path="eventloop/eventloop.html">
             
                 
-                    <a href="./eventloop/eventloop.html">
+                    <a href="../eventloop/eventloop.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.</b>
@@ -447,10 +449,10 @@
                 
     
         
-        <li class="chapter " data-level="3.1" data-path="eventloop/interface_EventExecutor.html">
+        <li class="chapter active" data-level="3.1" data-path="eventloop/interface_EventExecutor.html">
             
                 
-                    <a href="./eventloop/interface_EventExecutor.html">
+                    <a href="../eventloop/interface_EventExecutor.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.1.</b>
@@ -466,7 +468,7 @@
         <li class="chapter " data-level="3.2" data-path="eventloop/interface_EventLoop.html">
             
                 
-                    <a href="./eventloop/interface_EventLoop.html">
+                    <a href="../eventloop/interface_EventLoop.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.2.</b>
@@ -564,7 +566,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="./" >Leaning Netty</a>
+        <a href="../" >Leaning Netty</a>
     </h1>
 </div>
 
@@ -572,12 +574,147 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_1">
+                    <section class="normal" id="section-gitbook_24">
                     
-                        <h1 id="leaning-netty">leaning-netty</h1>
-<p>Netty学习笔记, 包括代码学习,源码分析.基于最新的netty5.</p>
-<p>笔记格式基于markdown语法, 采用gitbook组织内容.</p>
-<p>阅读版本的HTML内容请点击 <a href="http://skyao.github.io/leaning-netty/" target="_blank">这里</a>.</p>
+                        <h1 id="eventexecutorgroup">EventExecutorGroup</h1>
+<h2 id="">接口定义</h2>
+<p>先看EventExecutorGroup接口的定义,注意这个类在packag &quot;io.netty.util.concurrent&quot;下:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">package</span> io.netty.util.concurrent
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">EventExecutorGroup</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ScheduledExecutorService</span>, <span class="hljs-title">AutoCloseable</span> </span>{}
+</code></pre>
+<p>EventExecutorGroup继承自jdk java.util.concurrent包下的ScheduledExecutorService, 这意味着EventExecutorGroup本身就是一个标准的jdk executor, 提供定时任务的支持.</p>
+<h2 id="shutdown">增强shutdown()方法</h2>
+<p>EventExecutorGroup中针对ExecutorService的shutdown()提供了增强，提供了优雅关闭的方法shutdownGracefully().</p>
+<p>从代码上看,具体做法是EventExecutorGroup覆盖了executor的标准方法shutdown()和shutdownNow(), 加上了@Deprecated标记. 在javadoc中要求使用者不要调用这两个方法, 改为调用EventExecutorGroup接口中定义的shutdownGracefully()方法. 另外增加了一个isShuttingDown()方法来检查是否正在关闭:</p>
+<pre><code class="lang-java">    <span class="hljs-javadoc">/**
+     * 当且仅当这个EventExecutorGroup管理的所有EventExecutor正在被shutdownGracefully()方法优雅关闭或被已经被关闭.
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isShuttingDown</span><span class="hljs-params">()</span></span>;
+
+    <span class="hljs-javadoc">/**
+     * 等同于以合理的默认参数调用shutdownGracefully(quietPeriod, timeout, unit)方法
+     */</span>
+    Future&lt;?&gt; shutdownGracefully();
+
+    <span class="hljs-javadoc">/**
+     * 发信号给这个executor,告之调用者希望这个executor关闭. 一旦这个方法被调用, isShuttingDown()方法就将开始返回true, 然后这个executor准备关闭自己. 和shutdown()不同, 优雅关闭保证在关闭之前,在静默时间(the quiet period, 通常是几秒钟)内没有任务提交. 如果在静默时间内有任务提交, 这个任务将被接受, 而静默时间将重头开始.
+     *
+     *<span class="hljs-javadoctag"> @param</span> quietPeriod 上面文档中描述的静默时间
+     *<span class="hljs-javadoctag"> @param</span> timeout     等待的最大超时时间, 直到executor被关闭, 无论在静默时间内是否有任务被提交
+     *<span class="hljs-javadoctag"> @param</span> unit        静默时间和超时时间的单位
+     *
+     *<span class="hljs-javadoctag"> @return</span> the {@link #terminationFuture()}
+     */</span>
+    Future&lt;?&gt; shutdownGracefully(<span class="hljs-keyword">long</span> quietPeriod, <span class="hljs-keyword">long</span> timeout, TimeUnit unit);
+
+    Future&lt;?&gt; terminationFuture();
+
+    <span class="hljs-annotation">@Deprecated</span>            <span class="hljs-comment">//禁用,用shutdownGracefully()代替</span>
+    <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">shutdown</span><span class="hljs-params">()</span></span>;
+
+    <span class="hljs-annotation">@Deprecated</span>            <span class="hljs-comment">//禁用,用shutdownGracefully()代替</span>
+    <span class="hljs-function">List&lt;Runnable&gt; <span class="hljs-title">shutdownNow</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<p>这里还有增加了一个terminationFuture()方法, 获取一个Future, 当这个EventExecutorGroup管理的所有的EventExecutors都被终止时可以得到通知.</p>
+<h2 id="eventexecutor">管理EventExecutor</h2>
+<p>然后是最重要的两个方法next()和children():</p>
+<pre><code class="lang-java">    <span class="hljs-javadoc">/**
+     * 返回这个EventExecutorGroup管理的一个EventExecutor
+     */</span>
+    <span class="hljs-function">EventExecutor <span class="hljs-title">next</span><span class="hljs-params">()</span></span>;
+
+    <span class="hljs-javadoc">/**
+     * 返回这个EventExecutorGroup管理的所有EventExecutor的不可变集合
+     */</span>
+    &lt;E extends EventExecutor&gt; <span class="hljs-function">Set&lt;E&gt; <span class="hljs-title">children</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<p>这里可以看到EventExecutorGroup和EventExecutor的关系是:</p>
+<ul>
+<li><strong>EventExecutorGroup管理了(从对象关系上说是&quot;聚合&quot;了)多个EventExecutor</strong></li>
+<li>next()方法返回其中的一个EventExecutor</li>
+<li>children()返回所有的EventExecutor</li>
+</ul>
+<h2 id="submitschedule">覆盖submit()和schedule()方法</h2>
+<p>EventExecutorGroup中的submit()方法, 对照了一下, 和ExecutorService接口中完全相同的.</p>
+<pre><code class="lang-java">    <span class="hljs-annotation">@Override</span>
+    Future&lt;?&gt; submit(Runnable task);
+
+    <span class="hljs-annotation">@Override</span>
+    &lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Runnable task, T result)</span></span>;
+
+    <span class="hljs-annotation">@Override</span>
+    &lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Callable&lt;T&gt; task)</span></span>;
+</code></pre>
+<p>但是仔细看,会有个非常不起眼的小地方,submit()方法方法的返回对象不同,虽然都是Future:</p>
+<ul>
+<li>EventExecutorGroup中submit()方法返回的 Future 是 &quot;io.netty.util.concurrent.Future&quot;</li>
+<li>ExecutorService中submit()方法返回的 Future 是 &quot;java.util.concurrent.Future&quot;</li>
+</ul>
+<p>下面是io.netty.util.concurrent.Future的代码, 继承自java.util.concurrent.Future,然后增加了一些特有方法:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Future</span>&lt;<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">java</span>.<span class="hljs-title">util</span>.<span class="hljs-title">concurrent</span>.<span class="hljs-title">Future</span>&lt;<span class="hljs-title">V</span>&gt; </span>{
+    ......
+}
+</code></pre>
+<p>类似的, schedule()方法也是同样覆盖了接口ScheduledExecutorService中的对应方法, 依然是修改了返回的
+对象类型, 用io.netty.util.concurrent.ScheduledFuture替代了java.util.concurrent.ScheduledFuture:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ScheduledFuture</span>&lt;<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">Future</span>&lt;<span class="hljs-title">V</span>&gt;, <span class="hljs-title">java</span>.<span class="hljs-title">util</span>.<span class="hljs-title">concurrent</span>.<span class="hljs-title">ScheduledFuture</span>&lt;<span class="hljs-title">V</span>&gt; </span>{
+    ......
+}
+</code></pre>
+<h1 id="eventexecutor">EventExecutor</h1>
+<h2 id="">接口定义</h2>
+<p>EventExecutor的设计比较费解, 居然是从EventExecutorGroup下继承:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">EventExecutor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">EventExecutorGroup</span> </span>{
+}
+</code></pre>
+<p>考虑到EventExecutorGroup的设计中, EventExecutorGroup内部是聚合/管理了多个EventExecutor. 然后现在EventExecutor再继承EventExecutorGroup一把, 我有些凌乱了......</p>
+<h2 id="eventexecutorgroup">和EventExecutorGroup的关系</h2>
+<p>在EventExecutor中覆盖了EventExecutorGroup的next()/children(), 在我看来这是netty在努力的收拾凌乱的局面:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function">EventExecutor <span class="hljs-title">next</span><span class="hljs-params">()</span></span>;
+
+<span class="hljs-annotation">@Override</span>
+&lt;E extends EventExecutor&gt; <span class="hljs-function">Set&lt;E&gt; <span class="hljs-title">children</span><span class="hljs-params">()</span></span>;
+
+<span class="hljs-function">EventExecutorGroup <span class="hljs-title">parent</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<ul>
+<li>next()方法: EventExecutorGroup中next()方法用来返回管理的EventExecutor中的其中一个, 到了EventExecutor中, 这里应该不会继续再管理其他EventExecutor了, 所以next()方法被覆盖为仅仅返回当前EventExecutor本身的引用</li>
+<li>children()方法: EventExecutorGroup中children()方法用来返回管理的所有的EventExecutor, 到了EventExecutor中,返回的集合就只能包含自身一个引用.</li>
+<li>parent()方法: 新增加的方法,返回当前EventExecutor所属的EventExecutorGroup</li>
+</ul>
+<h2 id="ineventloop">inEventLoop()方法</h2>
+<p>inEventLoop()方法用于查询某个线程是否在EventExecutor所管理的线程中.</p>
+<pre><code class="lang-java">    <span class="hljs-javadoc">/**
+     * 等同于调用inEventLoop(Thread.currentThread())
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">inEventLoop</span><span class="hljs-params">()</span></span>;
+
+    <span class="hljs-javadoc">/**
+     * 当给定的线程在event loop中返回true, 否则返回false
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">inEventLoop</span><span class="hljs-params">(Thread thread)</span></span>;
+</code></pre>
+<h2 id="unwrap">unwrap()方法</h2>
+<p>unwrap()方法用于返回一个非WrappedEventExecutor的EventExecutor.</p>
+<ul>
+<li>对于WrappedEventExecutor的实现类,需要返回底层包裹的EventExecutor, 而且要保证返回的EventExecutor也不是WrappedEventExecutor (这意味着可能需要调用多次unwrap())</li>
+<li>对于非WrappedEventExecutor的实现类, 只要简单返回自身实例就好了</li>
+<li>强调, 一定不能返回null</li>
+</ul>
+<pre><code class="lang-java">    <span class="hljs-function">EventExecutor <span class="hljs-title">unwrap</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<h2 id="promisefuture">创建Promise和Future</h2>
+<pre><code class="lang-java">    &lt;V&gt; <span class="hljs-function">Promise&lt;V&gt; <span class="hljs-title">newPromise</span><span class="hljs-params">()</span></span>;
+
+    &lt;V&gt; <span class="hljs-function">ProgressivePromise&lt;V&gt; <span class="hljs-title">newProgressivePromise</span><span class="hljs-params">()</span></span>;
+
+    &lt;V&gt; <span class="hljs-function">Future&lt;V&gt; <span class="hljs-title">newSucceededFuture</span><span class="hljs-params">(V result)</span></span>;
+
+    &lt;V&gt; <span class="hljs-function">Future&lt;V&gt; <span class="hljs-title">newFailedFuture</span><span class="hljs-params">(Throwable cause)</span></span>;
+</code></pre>
+<p>这个细节后面研究Promise和Future时再先看, 先跳过.</p>
 
                     
                     </section>
@@ -588,21 +725,23 @@
         </div>
 
         
+        <a href="../eventloop/eventloop.html" class="navigation navigation-prev " aria-label="Previous page: Eventloop"><i class="fa fa-angle-left"></i></a>
         
-        <a href="./buffer/buffer.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Buffer"><i class="fa fa-angle-right"></i></a>
+        
+        <a href="../eventloop/interface_EventLoop.html" class="navigation navigation-next " aria-label="Next page: 接口EventLoop"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
 
         
-<script src="gitbook/app.js"></script>
+<script src="../gitbook/app.js"></script>
 
     
     <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
     
-    <script src="gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
     
 
 <script>

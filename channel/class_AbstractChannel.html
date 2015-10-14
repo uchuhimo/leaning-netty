@@ -5,22 +5,24 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Introduction | Leaning Netty</title>
+        <title>类AbstractChannel | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="the records in leaning netty">
+        <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
         <meta name="HandheldFriendly" content="true"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
-        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
-        <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
         
         
     
     
-    <link rel="next" href="./buffer/buffer.html" />
+    <link rel="next" href="../channel/interface_Unsafe.html" />
     
+    
+    <link rel="prev" href="../channel/interface_Channel.html" />
     
 
         
@@ -28,11 +30,11 @@
     <body>
         
         
-<link rel="stylesheet" href="gitbook/style.css">
+<link rel="stylesheet" href="../gitbook/style.css">
 
 
         
-    <div class="book" data-level="0" data-basepath="." data-revision="1444804505488">
+    <div class="book" data-level="2.2" data-basepath=".." data-revision="1444804505488">
     
 
 <div class="book-summary">
@@ -50,10 +52,10 @@
         
     
         
-        <li class="chapter active" data-level="0" data-path="index.html">
+        <li class="chapter " data-level="0" data-path="index.html">
             
                 
-                    <a href="./index.html">
+                    <a href="../index.html">
                         <i class="fa fa-check"></i>
                         
                          Introduction
@@ -67,7 +69,7 @@
         <li class="chapter " data-level="1" data-path="buffer/buffer.html">
             
                 
-                    <a href="./buffer/buffer.html">
+                    <a href="../buffer/buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.</b>
@@ -84,7 +86,7 @@
         <li class="chapter " data-level="1.1" data-path="buffer/inheritance.html">
             
                 
-                    <a href="./buffer/inheritance.html">
+                    <a href="../buffer/inheritance.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.1.</b>
@@ -100,7 +102,7 @@
         <li class="chapter " data-level="1.2" data-path="buffer/important_features.html">
             
                 
-                    <a href="./buffer/important_features.html">
+                    <a href="../buffer/important_features.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.</b>
@@ -117,7 +119,7 @@
         <li class="chapter " data-level="1.2.1" data-path="buffer/pooled_buffer.html">
             
                 
-                    <a href="./buffer/pooled_buffer.html">
+                    <a href="../buffer/pooled_buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.1.</b>
@@ -133,7 +135,7 @@
         <li class="chapter " data-level="1.2.2" data-path="buffer/reference_count.html">
             
                 
-                    <a href="./buffer/reference_count.html">
+                    <a href="../buffer/reference_count.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.</b>
@@ -150,7 +152,7 @@
         <li class="chapter " data-level="1.2.2.1" data-path="buffer/interface_ReferenceCounted.html">
             
                 
-                    <a href="./buffer/interface_ReferenceCounted.html">
+                    <a href="../buffer/interface_ReferenceCounted.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.1.</b>
@@ -166,7 +168,7 @@
         <li class="chapter " data-level="1.2.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
             
                 
-                    <a href="./buffer/class_AbstractReferenceCountedByteBuf.html">
+                    <a href="../buffer/class_AbstractReferenceCountedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.2.</b>
@@ -182,7 +184,7 @@
         <li class="chapter " data-level="1.2.2.3" data-path="buffer/buffer_release.html">
             
                 
-                    <a href="./buffer/buffer_release.html">
+                    <a href="../buffer/buffer_release.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.3.</b>
@@ -198,7 +200,7 @@
         <li class="chapter " data-level="1.2.2.4" data-path="buffer/class_UnreleasableByteBuf.html">
             
                 
-                    <a href="./buffer/class_UnreleasableByteBuf.html">
+                    <a href="../buffer/class_UnreleasableByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.4.</b>
@@ -214,7 +216,7 @@
         <li class="chapter " data-level="1.2.2.5" data-path="buffer/lack_detection.html">
             
                 
-                    <a href="./buffer/lack_detection.html">
+                    <a href="../buffer/lack_detection.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.5.</b>
@@ -230,7 +232,7 @@
         <li class="chapter " data-level="1.2.2.6" data-path="buffer/class_ResourceLeakDetector.html">
             
                 
-                    <a href="./buffer/class_ResourceLeakDetector.html">
+                    <a href="../buffer/class_ResourceLeakDetector.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.6.</b>
@@ -246,7 +248,7 @@
         <li class="chapter " data-level="1.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
             
                 
-                    <a href="./buffer/class_LeakAwareByteBuf.html">
+                    <a href="../buffer/class_LeakAwareByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.7.</b>
@@ -267,7 +269,7 @@
         <li class="chapter " data-level="1.2.3" data-path="buffer/zero_copy.html">
             
                 
-                    <a href="./buffer/zero_copy.html">
+                    <a href="../buffer/zero_copy.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.</b>
@@ -284,7 +286,7 @@
         <li class="chapter " data-level="1.2.3.1" data-path="buffer/class_SlicedByteBuf.html">
             
                 
-                    <a href="./buffer/class_SlicedByteBuf.html">
+                    <a href="../buffer/class_SlicedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.1.</b>
@@ -300,7 +302,7 @@
         <li class="chapter " data-level="1.2.3.2" data-path="buffer/unpooled_wapped.html">
             
                 
-                    <a href="./buffer/unpooled_wapped.html">
+                    <a href="../buffer/unpooled_wapped.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.2.</b>
@@ -316,7 +318,7 @@
         <li class="chapter " data-level="1.2.3.3" data-path="buffer/class_CompositeByteBuf.html">
             
                 
-                    <a href="./buffer/class_CompositeByteBuf.html">
+                    <a href="../buffer/class_CompositeByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.3.</b>
@@ -342,7 +344,7 @@
         <li class="chapter " data-level="1.3" data-path="buffer/code_analyze.html">
             
                 
-                    <a href="./buffer/code_analyze.html">
+                    <a href="../buffer/code_analyze.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.3.</b>
@@ -363,7 +365,7 @@
         <li class="chapter " data-level="2" data-path="channel/channel.html">
             
                 
-                    <a href="./channel/channel.html">
+                    <a href="../channel/channel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.</b>
@@ -380,7 +382,7 @@
         <li class="chapter " data-level="2.1" data-path="channel/interface_Channel.html">
             
                 
-                    <a href="./channel/interface_Channel.html">
+                    <a href="../channel/interface_Channel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.1.</b>
@@ -393,10 +395,10 @@
         </li>
     
         
-        <li class="chapter " data-level="2.2" data-path="channel/class_AbstractChannel.html">
+        <li class="chapter active" data-level="2.2" data-path="channel/class_AbstractChannel.html">
             
                 
-                    <a href="./channel/class_AbstractChannel.html">
+                    <a href="../channel/class_AbstractChannel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.2.</b>
@@ -412,7 +414,7 @@
         <li class="chapter " data-level="2.3" data-path="channel/interface_Unsafe.html">
             
                 
-                    <a href="./channel/interface_Unsafe.html">
+                    <a href="../channel/interface_Unsafe.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.3.</b>
@@ -433,7 +435,7 @@
         <li class="chapter " data-level="3" data-path="eventloop/eventloop.html">
             
                 
-                    <a href="./eventloop/eventloop.html">
+                    <a href="../eventloop/eventloop.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.</b>
@@ -450,7 +452,7 @@
         <li class="chapter " data-level="3.1" data-path="eventloop/interface_EventExecutor.html">
             
                 
-                    <a href="./eventloop/interface_EventExecutor.html">
+                    <a href="../eventloop/interface_EventExecutor.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.1.</b>
@@ -466,7 +468,7 @@
         <li class="chapter " data-level="3.2" data-path="eventloop/interface_EventLoop.html">
             
                 
-                    <a href="./eventloop/interface_EventLoop.html">
+                    <a href="../eventloop/interface_EventLoop.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.2.</b>
@@ -564,7 +566,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="./" >Leaning Netty</a>
+        <a href="../" >Leaning Netty</a>
     </h1>
 </div>
 
@@ -572,12 +574,150 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_1">
+                    <section class="normal" id="section-gitbook_20">
                     
-                        <h1 id="leaning-netty">leaning-netty</h1>
-<p>Netty学习笔记, 包括代码学习,源码分析.基于最新的netty5.</p>
-<p>笔记格式基于markdown语法, 采用gitbook组织内容.</p>
-<p>阅读版本的HTML内容请点击 <a href="http://skyao.github.io/leaning-netty/" target="_blank">这里</a>.</p>
+                        <p>AbstractChannel顾名思义, 从Channel的继承结构上也可以看到, 在排除ServerChannel/ServerSocketChannel/SocketChannel三个接口定义之后, Channen的类层次就是从Channel -&gt; AbstractChannel -&gt; AbstractNioChannel 一路继承下去.</p>
+<p><img src="image/nio_channels.png" alt="nio channels"></p>
+<p>下面详细看代码实现.</p>
+<h1 id="">类定义和外围实现</h1>
+<h2 id="">类定义</h2>
+<pre><code class="lang-java"><span class="hljs-keyword">package</span> io.netty.channel
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractChannel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">DefaultAttributeMap</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Channel</span> </span>{}
+</code></pre>
+<h2 id="">外围接口实现</h2>
+<p>在Channel接口定义中申明的需要继承的两个接口AttributeMap/Comparable<Channel></p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Channel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AttributeMap</span>, <span class="hljs-title">Comparable</span>&lt;<span class="hljs-title">Channel</span>&gt; </span>{
+</code></pre>
+<p>通过继承DefaultAttributeMap实现了对接口AttributeMap的实现. Comparable接口的实现则是通过实现compareTo()方法来实现, compareTo()方法的代码:</p>
+<pre><code class="lang-java">    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> <span class="hljs-title">compareTo</span><span class="hljs-params">(Channel o)</span> </span>{
+        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span> == o) {
+            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">id</span><span class="hljs-params">()</span>.<span class="hljs-title">compareTo</span><span class="hljs-params">(o.id()</span>)</span>;
+    }
+</code></pre>
+<h1 id="channel">Channel接口实现</h1>
+<p>AbstractChannel实现了Channel接口定义的部分方法,作为所有Channel子类的基本实现.</p>
+<p>下面是AbstractChannel中定义的几个基本属性和构造函数, 注意这几个基本属性都是final:</p>
+<pre><code class="lang-java">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Channel parent;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ChannelId id;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Unsafe unsafe;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> DefaultChannelPipeline pipeline;
+
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractChannel</span><span class="hljs-params">(Channel parent)</span> </span>{
+        <span class="hljs-keyword">this</span>.parent = parent;
+        id = DefaultChannelId.newInstance();
+        unsafe = newUnsafe();
+        pipeline = <span class="hljs-keyword">new</span> DefaultChannelPipeline(<span class="hljs-keyword">this</span>);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractChannel</span><span class="hljs-params">(Channel parent, ChannelId id)</span> </span>{
+        <span class="hljs-keyword">this</span>.parent = parent;
+        <span class="hljs-keyword">this</span>.id = id;
+        unsafe = newUnsafe();
+        pipeline = <span class="hljs-keyword">new</span> DefaultChannelPipeline(<span class="hljs-keyword">this</span>);
+    }
+</code></pre>
+<h2 id="id">id</h2>
+<p>每个Channel的实例都应该有一个唯一的id,这个id一旦设置就不能被修改. 默认通过DefaultChannelId.newInstance()方法来获取:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ChannelId id;
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractChannel</span><span class="hljs-params">(Channel parent)</span> </span>{
+    id = DefaultChannelId.newInstance();
+    ......
+}
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractChannel</span><span class="hljs-params">(Channel parent, ChannelId id)</span> </span>{
+    <span class="hljs-keyword">this</span>.id = id;
+    ......
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> ChannelId <span class="hljs-title">id</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> id;
+}
+</code></pre>
+<h2 id="parent">parent</h2>
+<p>每个Channel的parent在构造函数中指定:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Channel parent;
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractChannel</span><span class="hljs-params">(Channel parent)</span> </span>{
+    <span class="hljs-keyword">this</span>.parent = parent;
+    ......
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> Channel <span class="hljs-title">parent</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> parent;
+}
+</code></pre>
+<h3 id="pipeline">　pipeline</h3>
+<p>pipeline的初始化在构造函数中，目前看时直接固定为使用DefaultChannelPipeline的实现：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> DefaultChannelPipeline pipeline;
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractChannel</span><span class="hljs-params">(Channel parent, ChannelId id)</span> </span>{
+    ......
+    pipeline = <span class="hljs-keyword">new</span> DefaultChannelPipeline(<span class="hljs-keyword">this</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelPipeline <span class="hljs-title">pipeline</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> pipeline;
+}
+</code></pre>
+<blockquote>
+<p>比较奇怪的是这里pipeline的类型定义是&quot;DefaultChannelPipeline&quot;，　而不是&quot;ChannelPipeline&quot;．这个方式按说不正确，呵呵，验证过将类型修改为ChannelPipeline代码编译和测试都OK．</p>
+<p><strong>已经提交了一个pull request 给netty，看看他们能否接受</strong>
+更新: netty接受了这个commit, 现在pipeline的类型已经修改为ChannelPipeline了.</p>
+</blockquote>
+<p>在AbstractChannel的实现中, 有很多和IO相关的方法是直接delagate给pipeline的, 例如bind()方法:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> ChannelFuture <span class="hljs-title">bind</span><span class="hljs-params">(SocketAddress localAddress)</span> </span>{
+    <span class="hljs-keyword">return</span> pipeline.bind(localAddress);
+}
+</code></pre>
+<p>类似delagate给pipeline的方法包括:</p>
+<ul>
+<li>bind()</li>
+<li>connect()</li>
+<li>disconnect()</li>
+<li>close()</li>
+<li>deregister()</li>
+<li>flush()</li>
+<li>read()</li>
+<li>write()</li>
+<li>writeAndFlush()</li>
+</ul>
+<h3 id="unsafe">unsafe</h3>
+<p>unsafe的初始化也是在构造函数中，通过定义模板方法newUnsafe()让子类来给出具体的Unsafe的实现：</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Unsafe unsafe;
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractChannel</span><span class="hljs-params">(Channel parent, ChannelId id)</span> </span>{
+    ......
+    unsafe = newUnsafe();
+}
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> AbstractUnsafe <span class="hljs-title">newUnsafe</span><span class="hljs-params">()</span></span>;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> Unsafe <span class="hljs-title">unsafe</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> unsafe;
+}
+</code></pre>
+<p>在AbstractChannel的实现中, 有部分方法是直接delagate给unsafe的, 例如isWritable()方法:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isWritable</span><span class="hljs-params">()</span> </span>{
+    ChannelOutboundBuffer buf = unsafe.outboundBuffer();
+    <span class="hljs-keyword">return</span> buf != <span class="hljs-keyword">null</span> &amp;&amp; buf.isWritable();
+}
+</code></pre>
+<p>类似delagate给unsafe的方法包括:</p>
+<ul>
+<li>isWritable()</li>
+<li>bytesBeforeUnwritable()</li>
+<li>bytesBeforeWritable()</li>
+<li>localAddress()</li>
+<li>remoteAddress()</li>
+</ul>
 
                     
                     </section>
@@ -588,21 +728,23 @@
         </div>
 
         
+        <a href="../channel/interface_Channel.html" class="navigation navigation-prev " aria-label="Previous page: 接口Channel"><i class="fa fa-angle-left"></i></a>
         
-        <a href="./buffer/buffer.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Buffer"><i class="fa fa-angle-right"></i></a>
+        
+        <a href="../channel/interface_Unsafe.html" class="navigation navigation-next " aria-label="Next page: Channel Unsafe"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
 
         
-<script src="gitbook/app.js"></script>
+<script src="../gitbook/app.js"></script>
 
     
     <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
     
-    <script src="gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
     
 
 <script>

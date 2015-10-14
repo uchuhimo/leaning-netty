@@ -5,22 +5,24 @@
         
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Introduction | Leaning Netty</title>
+        <title>接口Channel | Leaning Netty</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="the records in leaning netty">
+        <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
         <meta name="HandheldFriendly" content="true"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
-        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
-        <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
         
         
     
     
-    <link rel="next" href="./buffer/buffer.html" />
+    <link rel="next" href="../channel/class_AbstractChannel.html" />
     
+    
+    <link rel="prev" href="../channel/channel.html" />
     
 
         
@@ -28,11 +30,11 @@
     <body>
         
         
-<link rel="stylesheet" href="gitbook/style.css">
+<link rel="stylesheet" href="../gitbook/style.css">
 
 
         
-    <div class="book" data-level="0" data-basepath="." data-revision="1444804505488">
+    <div class="book" data-level="2.1" data-basepath=".." data-revision="1444804505488">
     
 
 <div class="book-summary">
@@ -50,10 +52,10 @@
         
     
         
-        <li class="chapter active" data-level="0" data-path="index.html">
+        <li class="chapter " data-level="0" data-path="index.html">
             
                 
-                    <a href="./index.html">
+                    <a href="../index.html">
                         <i class="fa fa-check"></i>
                         
                          Introduction
@@ -67,7 +69,7 @@
         <li class="chapter " data-level="1" data-path="buffer/buffer.html">
             
                 
-                    <a href="./buffer/buffer.html">
+                    <a href="../buffer/buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.</b>
@@ -84,7 +86,7 @@
         <li class="chapter " data-level="1.1" data-path="buffer/inheritance.html">
             
                 
-                    <a href="./buffer/inheritance.html">
+                    <a href="../buffer/inheritance.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.1.</b>
@@ -100,7 +102,7 @@
         <li class="chapter " data-level="1.2" data-path="buffer/important_features.html">
             
                 
-                    <a href="./buffer/important_features.html">
+                    <a href="../buffer/important_features.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.</b>
@@ -117,7 +119,7 @@
         <li class="chapter " data-level="1.2.1" data-path="buffer/pooled_buffer.html">
             
                 
-                    <a href="./buffer/pooled_buffer.html">
+                    <a href="../buffer/pooled_buffer.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.1.</b>
@@ -133,7 +135,7 @@
         <li class="chapter " data-level="1.2.2" data-path="buffer/reference_count.html">
             
                 
-                    <a href="./buffer/reference_count.html">
+                    <a href="../buffer/reference_count.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.</b>
@@ -150,7 +152,7 @@
         <li class="chapter " data-level="1.2.2.1" data-path="buffer/interface_ReferenceCounted.html">
             
                 
-                    <a href="./buffer/interface_ReferenceCounted.html">
+                    <a href="../buffer/interface_ReferenceCounted.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.1.</b>
@@ -166,7 +168,7 @@
         <li class="chapter " data-level="1.2.2.2" data-path="buffer/class_AbstractReferenceCountedByteBuf.html">
             
                 
-                    <a href="./buffer/class_AbstractReferenceCountedByteBuf.html">
+                    <a href="../buffer/class_AbstractReferenceCountedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.2.</b>
@@ -182,7 +184,7 @@
         <li class="chapter " data-level="1.2.2.3" data-path="buffer/buffer_release.html">
             
                 
-                    <a href="./buffer/buffer_release.html">
+                    <a href="../buffer/buffer_release.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.3.</b>
@@ -198,7 +200,7 @@
         <li class="chapter " data-level="1.2.2.4" data-path="buffer/class_UnreleasableByteBuf.html">
             
                 
-                    <a href="./buffer/class_UnreleasableByteBuf.html">
+                    <a href="../buffer/class_UnreleasableByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.4.</b>
@@ -214,7 +216,7 @@
         <li class="chapter " data-level="1.2.2.5" data-path="buffer/lack_detection.html">
             
                 
-                    <a href="./buffer/lack_detection.html">
+                    <a href="../buffer/lack_detection.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.5.</b>
@@ -230,7 +232,7 @@
         <li class="chapter " data-level="1.2.2.6" data-path="buffer/class_ResourceLeakDetector.html">
             
                 
-                    <a href="./buffer/class_ResourceLeakDetector.html">
+                    <a href="../buffer/class_ResourceLeakDetector.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.6.</b>
@@ -246,7 +248,7 @@
         <li class="chapter " data-level="1.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
             
                 
-                    <a href="./buffer/class_LeakAwareByteBuf.html">
+                    <a href="../buffer/class_LeakAwareByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.2.7.</b>
@@ -267,7 +269,7 @@
         <li class="chapter " data-level="1.2.3" data-path="buffer/zero_copy.html">
             
                 
-                    <a href="./buffer/zero_copy.html">
+                    <a href="../buffer/zero_copy.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.</b>
@@ -284,7 +286,7 @@
         <li class="chapter " data-level="1.2.3.1" data-path="buffer/class_SlicedByteBuf.html">
             
                 
-                    <a href="./buffer/class_SlicedByteBuf.html">
+                    <a href="../buffer/class_SlicedByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.1.</b>
@@ -300,7 +302,7 @@
         <li class="chapter " data-level="1.2.3.2" data-path="buffer/unpooled_wapped.html">
             
                 
-                    <a href="./buffer/unpooled_wapped.html">
+                    <a href="../buffer/unpooled_wapped.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.2.</b>
@@ -316,7 +318,7 @@
         <li class="chapter " data-level="1.2.3.3" data-path="buffer/class_CompositeByteBuf.html">
             
                 
-                    <a href="./buffer/class_CompositeByteBuf.html">
+                    <a href="../buffer/class_CompositeByteBuf.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.2.3.3.</b>
@@ -342,7 +344,7 @@
         <li class="chapter " data-level="1.3" data-path="buffer/code_analyze.html">
             
                 
-                    <a href="./buffer/code_analyze.html">
+                    <a href="../buffer/code_analyze.html">
                         <i class="fa fa-check"></i>
                         
                             <b>1.3.</b>
@@ -363,7 +365,7 @@
         <li class="chapter " data-level="2" data-path="channel/channel.html">
             
                 
-                    <a href="./channel/channel.html">
+                    <a href="../channel/channel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.</b>
@@ -377,10 +379,10 @@
                 
     
         
-        <li class="chapter " data-level="2.1" data-path="channel/interface_Channel.html">
+        <li class="chapter active" data-level="2.1" data-path="channel/interface_Channel.html">
             
                 
-                    <a href="./channel/interface_Channel.html">
+                    <a href="../channel/interface_Channel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.1.</b>
@@ -396,7 +398,7 @@
         <li class="chapter " data-level="2.2" data-path="channel/class_AbstractChannel.html">
             
                 
-                    <a href="./channel/class_AbstractChannel.html">
+                    <a href="../channel/class_AbstractChannel.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.2.</b>
@@ -412,7 +414,7 @@
         <li class="chapter " data-level="2.3" data-path="channel/interface_Unsafe.html">
             
                 
-                    <a href="./channel/interface_Unsafe.html">
+                    <a href="../channel/interface_Unsafe.html">
                         <i class="fa fa-check"></i>
                         
                             <b>2.3.</b>
@@ -433,7 +435,7 @@
         <li class="chapter " data-level="3" data-path="eventloop/eventloop.html">
             
                 
-                    <a href="./eventloop/eventloop.html">
+                    <a href="../eventloop/eventloop.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.</b>
@@ -450,7 +452,7 @@
         <li class="chapter " data-level="3.1" data-path="eventloop/interface_EventExecutor.html">
             
                 
-                    <a href="./eventloop/interface_EventExecutor.html">
+                    <a href="../eventloop/interface_EventExecutor.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.1.</b>
@@ -466,7 +468,7 @@
         <li class="chapter " data-level="3.2" data-path="eventloop/interface_EventLoop.html">
             
                 
-                    <a href="./eventloop/interface_EventLoop.html">
+                    <a href="../eventloop/interface_EventLoop.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.2.</b>
@@ -564,7 +566,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="./" >Leaning Netty</a>
+        <a href="../" >Leaning Netty</a>
     </h1>
 </div>
 
@@ -572,12 +574,132 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_1">
+                    <section class="normal" id="section-gitbook_21">
                     
-                        <h1 id="leaning-netty">leaning-netty</h1>
-<p>Netty学习笔记, 包括代码学习,源码分析.基于最新的netty5.</p>
-<p>笔记格式基于markdown语法, 采用gitbook组织内容.</p>
-<p>阅读版本的HTML内容请点击 <a href="http://skyao.github.io/leaning-netty/" target="_blank">这里</a>.</p>
+                        <p>Channel接口的定义如下: </p>
+<pre><code class="lang-java"><span class="hljs-keyword">package</span> io.netty.channel
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Channel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AttributeMap</span>, <span class="hljs-title">Comparable</span>&lt;<span class="hljs-title">Channel</span>&gt; </span>{
+}
+</code></pre>
+<p>继承了AttributeMap接口用于提供Attribute的访问, 继承了Comparable接口用于???</p>
+<p>TBD: 继承Comparable接口是为什么?</p>
+<h2 id="channel">Channel接口方法定义</h2>
+<h3 id="">获取基础属性</h3>
+<ul>
+<li>ChannelId id()</li>
+<li>Channel parent()</li>
+<li>ChannelConfig config()</li>
+<li>ChannelMetadata metadata(): 获取TCP参数配置</li>
+</ul>
+<h3 id="">获取运行时属性</h3>
+<ul>
+<li>EventLoop eventLoop()</li>
+<li>Channel.Unsafe unsafe()</li>
+<li>ChannelPipeline pipeline()</li>
+<li>ByteBufAllocator alloc()</li>
+</ul>
+<h3 id="">获取状态</h3>
+<ul>
+<li>boolean isOpen()</li>
+<li>boolean isRegistered()</li>
+<li>boolean isActive()</li>
+<li>boolean isWritable()</li>
+</ul>
+<h3 id="">获取和网络相关属性</h3>
+<ul>
+<li>SocketAddress localAddress()</li>
+<li>SocketAddress remoteAddress()</li>
+</ul>
+<h3 id="futurepromise">获取各种Future和Promise</h3>
+<ul>
+<li>ChannelFuture closeFuture()</li>
+<li>ChannelPromise newPromise()</li>
+<li>ChannelProgressivePromise newProgressivePromise()</li>
+<li>ChannelFuture newSucceededFuture()</li>
+<li>ChannelFuture newFailedFuture(Throwable cause)</li>
+<li>ChannelPromise voidPromise()</li>
+</ul>
+<h3 id="io">IO操作</h3>
+<ul>
+<li>ChannelFuture bind(SocketAddress localAddress)</li>
+<li>ChannelFuture bind(SocketAddress localAddress, ChannelPromise promise)</li>
+<li>ChannelFuture connect(SocketAddress remoteAddress)</li>
+<li>ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress)</li>
+<li>ChannelFuture connect(SocketAddress remoteAddress, ChannelPromise promise)</li>
+<li>ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise)</li>
+<li>ChannelFuture disconnect()</li>
+<li>ChannelFuture disconnect(ChannelPromise promise)</li>
+<li>ChannelFuture close()</li>
+<li>ChannelFuture close(ChannelPromise promise)</li>
+<li>ChannelFuture deregister()</li>
+<li>ChannelFuture deregister(ChannelPromise promise)</li>
+<li>Channel read()</li>
+<li>ChannelFuture write(Object msg)</li>
+<li>ChannelFuture write(Object msg, ChannelPromise promise)</li>
+<li>Channel flush()</li>
+<li>ChannelFuture writeAndFlush(Object msg)</li>
+<li>ChannelFuture writeAndFlush(Object msg, ChannelPromise promise)</li>
+</ul>
+<h2 id="unsafe">Unsafe</h2>
+<p>在Channel接口内部定义了一个Unsafe接口, 然后提供了一个unsafe()用于或者这个Channel实例关联的Unsafe对象实例:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Channel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AttributeMap</span>, <span class="hljs-title">Comparable</span>&lt;<span class="hljs-title">Channel</span>&gt; </span>{
+    ......
+    <span class="hljs-function">Unsafe <span class="hljs-title">unsafe</span><span class="hljs-params">()</span></span>;
+    ......
+    <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Unsafe</span> </span>{......}
+}
+</code></pre>
+<p>这个Unsafe接口相关的内容后面再详细讲.</p>
+<h2 id="channel">其他Channel接口</h2>
+<p><img src="image/nio_channels.png" alt="nio channels"></p>
+<p>在Channel继承结构中, ServerChannel/ServerSocketChannel/SocketChannel 三个interface继承自Channel.</p>
+<h3 id="serverchannel">ServerChannel</h3>
+<p>ServerChannel 仅仅是一个标识接口, 没有任何实质内容. 代码也只是简单的有个申明:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ServerChannel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Channel</span> </span>{ }
+</code></pre>
+<h3 id="serversocketchannel">ServerSocketChannel</h3>
+<p>ServerSocketChannel从ServerChannel继承, 内容也很少,只是覆盖了几个定义在Channel的方法, 修改了函数的返回类型, 用更具体的子类型替代了Channel接口中定义的基础类型:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ServerSocketChannel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ServerChannel</span> </span>{
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function">ServerSocketChannelConfig <span class="hljs-title">config</span><span class="hljs-params">()</span></span>;            <span class="hljs-comment">// return ChannelConfig in Channel</span>
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function">InetSocketAddress <span class="hljs-title">localAddress</span><span class="hljs-params">()</span></span>;            <span class="hljs-comment">// return SocketAddress in Channel</span>
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function">InetSocketAddress <span class="hljs-title">remoteAddress</span><span class="hljs-params">()</span></span>;            <span class="hljs-comment">// return SocketAddress in Channel</span>
+}
+</code></pre>
+<h3 id="socketchannel">SocketChannel</h3>
+<p>SocketChannel内容也不多:</p>
+<ol>
+<li><p>和ServerSocketChannel一样,覆盖了几个定义在Channel的方法, 修改了函数的返回类型, 用更具体的子类型替代了Channel接口中定义的基础类型:</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">SocketChannel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Channel</span> </span>{
+     <span class="hljs-annotation">@Override</span>
+     <span class="hljs-function">ServerSocketChannel <span class="hljs-title">parent</span><span class="hljs-params">()</span></span>;            <span class="hljs-comment">// return Channel in Channel</span>
+
+     <span class="hljs-annotation">@Override</span>
+     <span class="hljs-function">SocketChannelConfig <span class="hljs-title">config</span><span class="hljs-params">()</span></span>;            <span class="hljs-comment">// return ChannelConfig in Channel</span>
+     <span class="hljs-annotation">@Override</span>
+     <span class="hljs-function">InetSocketAddress <span class="hljs-title">localAddress</span><span class="hljs-params">()</span></span>;        <span class="hljs-comment">// return SocketAddress in Channel</span>
+     <span class="hljs-annotation">@Override</span>
+     <span class="hljs-function">InetSocketAddress <span class="hljs-title">remoteAddress</span><span class="hljs-params">()</span></span>;        <span class="hljs-comment">// return SocketAddress in Channel</span>
+     ......
+</code></pre>
+<p> 注意 parent() 的修改, SocketChannel应该都是从ServerSocketChannel中accept得到,所以它的parent总应该是一个 ServerSocketChannel.</p>
+</li>
+<li><p>定义了几个和socket相关的方法:</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">SocketChannel</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Channel</span> </span>{
+     ......
+     <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isInputShutdown</span><span class="hljs-params">()</span></span>;
+
+     <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isOutputShutdown</span><span class="hljs-params">()</span></span>;
+
+     <span class="hljs-function">ChannelFuture <span class="hljs-title">shutdownOutput</span><span class="hljs-params">()</span></span>;
+
+     <span class="hljs-function">ChannelFuture <span class="hljs-title">shutdownOutput</span><span class="hljs-params">(ChannelPromise future)</span></span>;
+</code></pre>
+</li>
+</ol>
 
                     
                     </section>
@@ -588,21 +710,23 @@
         </div>
 
         
+        <a href="../channel/channel.html" class="navigation navigation-prev " aria-label="Previous page: Channel"><i class="fa fa-angle-left"></i></a>
         
-        <a href="./buffer/buffer.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Buffer"><i class="fa fa-angle-right"></i></a>
+        
+        <a href="../channel/class_AbstractChannel.html" class="navigation navigation-next " aria-label="Next page: 类AbstractChannel"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
 
         
-<script src="gitbook/app.js"></script>
+<script src="../gitbook/app.js"></script>
 
     
     <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
     
-    <script src="gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
     
 
 <script>

@@ -1,0 +1,39 @@
+@startuml
+
+Channel                 <|--    ServerChannel
+Channel                 <|--    SocketChannel
+Channel                 <|--    AbstractChannel
+interface Channel {
+}
+interface ServerChannel {
+}
+interface SocketChannel {
+}
+abstract class AbstractChannel {
+}
+
+'ServerChannel
+ServerChannel           <|--    ServerSocketChannel
+ServerSocketChannel     <|--    NioServerSocketChannel
+interface ServerSocketChannel {
+}
+
+'SocketChannel
+SocketChannel           <|--    NioSocketChannel
+
+'AbstractChannel
+AbstractChannel         <|--    AbstractNioChannel
+AbstractNioChannel      <|--    AbstractNioByteChannel
+AbstractNioChannel      <|--    AbstractNioMessageChannel
+abstract class AbstractNioChannel {
+}
+abstract class AbstractNioByteChannel {
+}
+abstract class AbstractNioMessageChannel {
+}
+
+'nio Channel
+AbstractNioMessageChannel   <|--    NioServerSocketChannel
+AbstractNioByteChannel      <|--    NioSocketChannel
+
+@enduml
