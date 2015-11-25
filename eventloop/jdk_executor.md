@@ -101,6 +101,8 @@ AbstractExecutorService的类定义,申明实现ExecutorService接口:
 public abstract class AbstractExecutorService implements ExecutorService {}
 ```
 
+## submit(Callable)代码实现
+
 先看submit(Callable)方法的实现:
 
 ```java
@@ -117,4 +119,57 @@ public <T> Future<T> submit(Callable<T> task) {
 1. newTaskFor()方法将Callable类型的task包装为RunnableFuture
 2. 调用execute(ftask)方法执行任务
 3. 返回任务执行的结果
+
+### newTaskFor()方法
+
+newTaskFor()方法的代码如下, 里面出现了FutureTask类和RunnableFuture接口:
+
+```java
+protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+	// 将Callable类型的task包装为FutureTask, 然后向上溯型为接口RunnableFuture
+    return new FutureTask<T>(callable);
+}
+
+public class FutureTask<V> implements RunnableFuture<V> {
+	// 其他细节处理代码去掉, run()方法的核心代码就是调用Callable.call()
+    // 然后将得到的result保存起来
+	public void run() {
+		......
+        Callable<V> c = callable;
+        V result;
+        result = c.call();
+        set(result)
+        ......
+    }
+}
+// RunnableFuture 是实现了Runnable的Future (废话?!)
+public interface RunnableFuture<V> extends Runnable, Future<V> {
+    void run();
+}
+```
+
+总结,这行代码:
+
+	RunnableFuture<T> ftask = newTaskFor(task);
+
+做的事情就是将task包装为RunnableFuture
+
+RunnableFuture的实际实现类是默认是FutureTask, 但是注意newTaskFor()方法是protected, 因此具体的Executor实现类是可以覆盖这个方法来换成其他RunnableFuture实现.
+
+### execute(task)方法
+
+execute(ftask)调用回Executor接口的execute()方法, 注意RunnableFuture的作用.
+
+```java
+	execute(ftask);
+
+    public interface Executor {
+        void execute(Runnable command);
+    }
+```
+### submit(Callable)方法总结
+
+这就是ExecutorService中定义的submit(Callable)方法的实现方式: 通过将Callable包装为RunnableFuture, 成功的将submit(Callable)方法代理给Executor接口标准的execute(Runnable)方法, 同时提供了Future的支持.
+
+另外两个submit()方法(submit(Runnable task, T result) 方法和submit(Runnable task)方法) 的实现类似, 只是newTaskFor()方法的处理细节小有区别, 不细看了.
 
