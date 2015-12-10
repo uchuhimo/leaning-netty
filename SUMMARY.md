@@ -16,7 +16,6 @@ bui# Summary
             * [类SlicedByteBuf](buffer/class_SlicedByteBuf.md)
             * [方法Unpooled.wrappedBuffer()](buffer/unpooled_wapped.md)
             * [类CompositeByteBuf](buffer/class_CompositeByteBuf.md)
-	* [ByteBuf代码分析](buffer/code_analyze.md)
 * [Channel](channel/channel.md)
 	* [接口Channel](channel/interface_Channel.md)
 	* [类AbstractChannel](channel/class_AbstractChannel.md)
