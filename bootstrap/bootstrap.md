@@ -20,11 +20,28 @@ Bootstrap的作用可以参考AbstractBootstrap的javadoc:
 
 ```uml
 @startuml
+
 class AbstractBootstrap{
+- EventLoopGroup group
+- ChannelFactory channelFactory
+- SocketAddress localAddress
+- Map options
+- Map attrs
+- ChannelHandler handler
++ ChannelFuture register()
++ ChannelFuture bind()
+{abstract} void init(Channel channel)
 }
 class ServerBootstrap{
+- Map childOptions
+- Map childAttrs
+- EventLoopGroup childGroup
+- ChannelHandler childHandler
 }
 class Bootstrap{
+- AddressResolverGroup<SocketAddress> resolver
+- SocketAddress remoteAddress
++ ChannelFuture connect()
 }
 
 AbstractBootstrap  		<|-- 	Bootstrap

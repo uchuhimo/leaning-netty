@@ -1,7 +1,8 @@
 bui# Summary
-* [bootstrap](bootstrap/bootstrap.md)
-	* [类ServerBootstrap](bootstrap/class_ServerBootstrap.md)
+* [Bootstrap](bootstrap/bootstrap.md)
+	* [类AbstractBootstrap](bootstrap/class_AbstractBootstrap.md)
 	* [类Bootstrap](bootstrap/class_Bootstrap.md)
+	* [类ServerBootstrap](bootstrap/class_ServerBootstrap.md)
 * [Buffer](buffer/buffer.md)
 	* [ByteBuf继承结构](buffer/inheritance.md)
 	* [ByteBuf重要特性](buffer/important_features.md)
