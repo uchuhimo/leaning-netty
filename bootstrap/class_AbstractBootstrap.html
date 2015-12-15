@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="1.1" data-basepath=".." data-revision="1450145508609">
+    <div class="book" data-level="1.1" data-basepath=".." data-revision="1450146972900">
     
 
 <div class="book-summary">
@@ -935,6 +935,18 @@
 <span class="hljs-function"><span class="hljs-keyword">public</span> B <span class="hljs-title">channelFactory</span><span class="hljs-params">(io.netty.channel.ChannelFactory&lt; ? extends C&gt; channelFactory)</span> </span>{
     <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">channelFactory</span><span class="hljs-params">((ChannelFactory&lt;C&gt;)</span> channelFactory)</span>;
 }
+</code></pre>
+<p>注: 还有一个channel()方法可以非常方便的设置channelFactory:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> B <span class="hljs-title">channel</span><span class="hljs-params">(Class&lt; ? extends C&gt; channelClass)</span> </span>{
+    <span class="hljs-keyword">if</span> (channelClass == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"channelClass"</span>);
+    }
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">channelFactory</span><span class="hljs-params">(<span class="hljs-keyword">new</span> ReflectiveChannelFactory&lt;C&gt;(channelClass)</span>)</span>;
+}
+</code></pre>
+<p>使用例子如下(这个方法反而是最常用的):</p>
+<pre><code class="lang-java">ServerBootstrap b = <span class="hljs-keyword">new</span> ServerBootstrap();
+b.channel(NioServerSocketChannel.class);
 </code></pre>
 <h1 id="">方法</h1>
 <h2 id="validate">validate()</h2>
