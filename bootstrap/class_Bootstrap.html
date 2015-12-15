@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Channel | Leaning Netty/Netty学习笔记</title>
+        <title>类Bootstrap | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../channel/interface_Channel.html" />
+    <link rel="next" href="../bootstrap/class_ServerBootstrap.html" />
     
     
-    <link rel="prev" href="../buffer/class_CompositeByteBuf.html" />
+    <link rel="prev" href="../bootstrap/class_AbstractBootstrap.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="3" data-basepath=".." data-revision="1450145508609">
+    <div class="book" data-level="1.2" data-basepath=".." data-revision="1450145508609">
     
 
 <div class="book-summary">
@@ -110,7 +110,7 @@
         </li>
     
         
-        <li class="chapter " data-level="1.2" data-path="bootstrap/class_Bootstrap.html">
+        <li class="chapter active" data-level="1.2" data-path="bootstrap/class_Bootstrap.html">
             
                 
                     <a href="../bootstrap/class_Bootstrap.html">
@@ -427,7 +427,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="3" data-path="channel/channel.html">
+        <li class="chapter " data-level="3" data-path="channel/channel.html">
             
                 
                     <a href="../channel/channel.html">
@@ -757,41 +757,205 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_18">
+                    <section class="normal" id="section-gitbook_34">
                     
-                        <p>Channel 是netty中提供的对网络操作的抽象类,类似于NIO中的Channel (java.nio.SocketChannel/java.nio.ServerSocketChannel). Netty的javadoc中时这样描述的:</p>
-<blockquote>
-<p>A nexus to a network socket or a component which is capable of I/O operations such as read, write, connect, and bind.
-<strong>对网络套接字或者有I/O操作能力(例如读,写,连接和绑定)的模块的关联(抽象?)</strong></p>
-</blockquote>
-<p>channel为使用者提供的功能:</p>
-<ul>
-<li>channel当前的状态(例如是不是打开? 是不是连接上了?)</li>
-<li>channel的配置参数(例如接收缓冲区大小)</li>
-<li>提供I/O操作(例如读,写,连接和绑定)</li>
-<li>提供ChannelPipeline,用于处理所有的I/O事件和关联到channel的请求</li>
-</ul>
-<h2 id="">注意事项</h2>
-<p>netty channel的一些注意事项:</p>
-<ol>
-<li><p>所有的I/O操作都是异步的</p>
-<p> netty中所有的I/O操作都是异步的. 这意味着任何I/O调用都将立即返回而不保证请求的I/O操作在调用结束时已经完成. 替代的是,你将得到一个返回的 <strong>ChannelFuture</strong> 实例, 当请求的I/O操作成功,失败或者取消时将通知你.</p>
-</li>
-<li><p>channel是有等级的(hierarchical)</p>
-<p> channel可以有一个parent, 取决于它是如何创建的. 例如, SocketChannel 是 ServerSocketChannel 在接受连接时创建的. SocketChannel 的parent()方法就会返回这个ServerSocketChannel.</p>
-<p> 等级结构的语义取决于channel所属的 <strong>transport</strong> 的实现. 例如, 可以写一个新的Channel实现, 创建子channel用于分享一个socket连接, 像BEEP 和 SSH 那样.</p>
-</li>
-<li><p>向下溯型来访问传输特有(transport-specific)操作</p>
-<p> 某些transport 暴露transport特有的一些额外的操作. 将Channel向下溯型为子类型来调用这些操作. 例如, 对于老的I/O datagram transport, DatagramChannel 提供了 multicast join / leave 操作.</p>
-</li>
-<li><p>释放资源</p>
-<p> 有一个非常重要的事情, 当你完成channel的处理之后, 需要调用close() 或 close(ChannelPromise) 方法来释放所有的资源. 这样可以确保所有的资源以正确的方式被释放, 例如文件操作等.</p>
-</li>
-</ol>
-<h2 id="channel-">Channel 继承结构</h2>
-<p>Channel的子类非常多, 仅以最常用的nio为例, NioServerSocketChannel 和 NioSocketChannel 的继承结构如下:</p>
-<p><img src="image/nio_channels.png" alt="nio channels"></p>
-<p>在这个继承结构中, ServerChannel/ServerSocketChannel/SocketChannel 三个interface的内容都非常简单(ServerChannel甚至是空的), 主要内容还在几个abstract channel实现类.</p>
+                        <h1 id="bootstrap">类Bootstrap</h1>
+<p>类Bootstrap用于帮助客户端引导Channel.</p>
+<h1 id="">类定义</h1>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Bootstrap</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractBootstrap</span>&lt;<span class="hljs-title">Bootstrap</span>, <span class="hljs-title">Channel</span>&gt; </span>{}
+</code></pre>
+<h1 id="">类属性</h1>
+<h2 id="resolver">resolver</h2>
+<p>resolver默认设置为DefaultAddressResolverGroup.INSTANCE, 可以通过resolver()方法来赋值:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> AddressResolverGroup&lt; ? &gt; DEFAULT_RESOLVER = DefaultAddressResolverGroup.INSTANCE;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> AddressResolverGroup&lt;SocketAddress&gt; resolver = (AddressResolverGroup&lt;SocketAddress&gt;) DEFAULT_RESOLVER;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> Bootstrap <span class="hljs-title">resolver</span><span class="hljs-params">(AddressResolverGroup&lt; ? &gt; resolver)</span> </span>{
+    <span class="hljs-keyword">if</span> (resolver == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"resolver"</span>);
+    }
+    <span class="hljs-keyword">this</span>.resolver = (AddressResolverGroup&lt;SocketAddress&gt;) resolver;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+}
+</code></pre>
+<h2 id="remoteaddress">remoteAddress</h2>
+<p>remoteAddress可以通过remoteAddress()方法赋值, 有多个装载:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> SocketAddress remoteAddress;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> Bootstrap <span class="hljs-title">remoteAddress</span><span class="hljs-params">(SocketAddress remoteAddress)</span> </span>{
+    <span class="hljs-keyword">this</span>.remoteAddress = remoteAddress;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+}
+<span class="hljs-function"><span class="hljs-keyword">public</span> Bootstrap <span class="hljs-title">remoteAddress</span><span class="hljs-params">(String inetHost, <span class="hljs-keyword">int</span> inetPort)</span> </span>{
+    remoteAddress = InetSocketAddress.createUnresolved(inetHost, inetPort);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+}
+<span class="hljs-function"><span class="hljs-keyword">public</span> Bootstrap <span class="hljs-title">remoteAddress</span><span class="hljs-params">(InetAddress inetHost, <span class="hljs-keyword">int</span> inetPort)</span> </span>{
+    remoteAddress = <span class="hljs-keyword">new</span> InetSocketAddress(inetHost, inetPort);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+}
+</code></pre>
+<h1 id="">类方法</h1>
+<h2 id="validate">validate()方法</h2>
+<p>重写了validate()方法, 在调用AbstractBootstrap的validate()方法(检查group和channelFactory)外, 增加了对handler的检查:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> Bootstrap <span class="hljs-title">validate</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">super</span>.validate();
+    <span class="hljs-keyword">if</span> (handler() == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">"handler not set"</span>);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+}
+</code></pre>
+<h2 id="connect">connect()方法</h2>
+<p>有多个connect()方法重载, 功能都是一样, 拿到输入的remoteAddress然后调用doResolveAndConnect()方法:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> ChannelFuture <span class="hljs-title">connect</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// 先做前置检查</span>
+    validate();
+    <span class="hljs-comment">// 检查remoteAddress, 确认已经赋值</span>
+    SocketAddress remoteAddress = <span class="hljs-keyword">this</span>.remoteAddress;
+    <span class="hljs-keyword">if</span> (remoteAddress == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">"remoteAddress not set"</span>);
+    }
+
+    <span class="hljs-comment">// 调用doResolveAndConnect()方法</span>
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">doResolveAndConnect</span><span class="hljs-params">(remoteAddress, localAddress()</span>)</span>;
+}
+</code></pre>
+<p>看doResolveAndConnect()方法:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> ChannelFuture <span class="hljs-title">doResolveAndConnect</span><span class="hljs-params">(SocketAddress remoteAddress, <span class="hljs-keyword">final</span> SocketAddress localAddress)</span> </span>{
+    <span class="hljs-comment">// 先初始化channel并注册到event loop</span>
+    <span class="hljs-keyword">final</span> ChannelFuture regFuture = initAndRegister();
+    <span class="hljs-keyword">if</span> (regFuture.cause() != <span class="hljs-keyword">null</span>) {
+        <span class="hljs-comment">// 如果注册失败则退出</span>
+        <span class="hljs-keyword">return</span> regFuture;
+    }
+
+    <span class="hljs-keyword">final</span> Channel channel = regFuture.channel();
+    <span class="hljs-keyword">final</span> EventLoop eventLoop = channel.eventLoop();
+    <span class="hljs-keyword">final</span> AddressResolver&lt;SocketAddress&gt; resolver = <span class="hljs-keyword">this</span>.resolver.getResolver(eventLoop);
+
+    <span class="hljs-keyword">if</span> (!resolver.isSupported(remoteAddress) || resolver.isResolved(remoteAddress)) {
+        <span class="hljs-comment">// Resolver 不知道该怎么处理给定的远程地址, 或者已经解析</span>
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">doConnect</span><span class="hljs-params">(remoteAddress, localAddress, regFuture, channel.newPromise()</span>)</span>;
+    }
+
+    <span class="hljs-comment">// 开始解析远程地址</span>
+    <span class="hljs-keyword">final</span> Future&lt;SocketAddress&gt; resolveFuture = resolver.resolve(remoteAddress);
+    <span class="hljs-keyword">final</span> Throwable resolveFailureCause = resolveFuture.cause();
+
+    <span class="hljs-keyword">if</span> (resolveFailureCause != <span class="hljs-keyword">null</span>) {
+        <span class="hljs-comment">// 如果地址解析失败, 则立即失败</span>
+        channel.close();
+        <span class="hljs-keyword">return</span> channel.newFailedFuture(resolveFailureCause);
+    }
+
+    <span class="hljs-keyword">if</span> (resolveFuture.isDone()) {
+        <span class="hljs-comment">// 理解成功的解析了远程地址, 开始做连接</span>
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">doConnect</span><span class="hljs-params">(resolveFuture.getNow()</span>, localAddress, regFuture, channel.<span class="hljs-title">newPromise</span><span class="hljs-params">()</span>)</span>;
+    }
+
+    <span class="hljs-comment">// 地址解析还没有完成, 只能等待完成后在做connectio, 增加一个promise来操作</span>
+    <span class="hljs-keyword">final</span> ChannelPromise connectPromise = channel.newPromise();
+    resolveFuture.addListener(<span class="hljs-keyword">new</span> FutureListener&lt;SocketAddress&gt;() {
+        <span class="hljs-annotation">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(Future&lt;SocketAddress&gt; future)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+            <span class="hljs-keyword">if</span> (future.cause() != <span class="hljs-keyword">null</span>) {
+                channel.close();
+                connectPromise.setFailure(future.cause());
+            } <span class="hljs-keyword">else</span> {
+                doConnect(future.getNow(), localAddress, regFuture, connectPromise);
+            }
+        }
+    });
+
+    <span class="hljs-keyword">return</span> connectPromise;
+}
+</code></pre>
+<p>doConnect()方法中才是真正的开始处理连接操作, 但是还是需要检查注册操作是否完成:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ChannelFuture <span class="hljs-title">doConnect</span><span class="hljs-params">(
+        <span class="hljs-keyword">final</span> SocketAddress remoteAddress, <span class="hljs-keyword">final</span> SocketAddress localAddress,
+        <span class="hljs-keyword">final</span> ChannelFuture regFuture, <span class="hljs-keyword">final</span> ChannelPromise connectPromise)</span> </span>{
+    <span class="hljs-comment">// 判断一下前面的注册操作是否已经完成</span>
+    <span class="hljs-comment">// 因为注册操作是异步操作, 前面只是返回一个feature, 代码执行到这里时, 可能完成, 也可能还在进行中</span>
+    <span class="hljs-keyword">if</span> (regFuture.isDone()) {
+        <span class="hljs-comment">// 如果注册已经完成, 可以执行连接了</span>
+        doConnect0(remoteAddress, localAddress, regFuture, connectPromise);
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// 如果注册还在进行中, 增加一个ChannelFutureListener, 等操作完成之后再在回调方法中执行连接操作</span>
+        regFuture.addListener(<span class="hljs-keyword">new</span> ChannelFutureListener() {
+            <span class="hljs-annotation">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(ChannelFuture future)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+                doConnect0(remoteAddress, localAddress, regFuture, connectPromise);
+            }
+        });
+    }
+
+    <span class="hljs-keyword">return</span> connectPromise;
+}
+</code></pre>
+<p>异步操作就是这点比较麻烦, 总是需要一个一个future的做判断/处理, 如果没有完成还的加promise/future来依靠回调函数继续工作处理流程.</p>
+<p>终于到了最后的doConnect0()方法, 总算可以真的连接了:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doConnect0</span><span class="hljs-params">(
+        <span class="hljs-keyword">final</span> SocketAddress remoteAddress, <span class="hljs-keyword">final</span> SocketAddress localAddress, <span class="hljs-keyword">final</span> ChannelFuture regFuture,
+        <span class="hljs-keyword">final</span> ChannelPromise connectPromise)</span> </span>{
+    <span class="hljs-comment">// 这个方法在channelRegistered()方法被触发前调用.</span>
+    <span class="hljs-comment">// 给我们的handler一个在它的channelRegistered()实现中构建pipeline的机会</span>
+    <span class="hljs-keyword">final</span> Channel channel = connectPromise.channel();
+    <span class="hljs-comment">// 取当前channel的eventlopp, 执行一个一次性任务</span>
+    channel.eventLoop().execute(<span class="hljs-keyword">new</span> OneTimeTask() {
+        <span class="hljs-annotation">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>{
+            <span class="hljs-keyword">if</span> (regFuture.isSuccess()) {
+                <span class="hljs-comment">// 如果注册成功</span>
+                <span class="hljs-keyword">if</span> (localAddress == <span class="hljs-keyword">null</span>) {
+                    channel.connect(remoteAddress, connectPromise);
+                } <span class="hljs-keyword">else</span> {
+                    channel.connect(remoteAddress, localAddress, connectPromise);
+                }
+                connectPromise.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            } <span class="hljs-keyword">else</span> {
+                connectPromise.setFailure(regFuture.cause());
+            }
+        }
+    });
+}
+</code></pre>
+<h2 id="initchannel">init(channel)方法</h2>
+<p>前面看基类AbstractBootstrap时看到过, 这个init()方法是一个模板方法, 需要子类做具体实现.</p>
+<p>看看Bootstrap是怎么做channel初始化的:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-annotation">@SuppressWarnings</span>(<span class="hljs-string">"unchecked"</span>)
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">(Channel channel)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    <span class="hljs-comment">// 取channel的ChannelPipeline</span>
+    ChannelPipeline p = channel.pipeline();
+    <span class="hljs-comment">// 增加当前Bootstrap的handle到ChannelPipeline中</span>
+    p.addLast(handler());
+
+    <span class="hljs-comment">// 取当前Bootstrap设置的options, 逐个设置到channel中</span>
+    <span class="hljs-keyword">final</span> Map&lt;ChannelOption&lt; ? &gt;, Object&gt; options = options();
+    <span class="hljs-keyword">synchronized</span> (options) {
+        <span class="hljs-keyword">for</span> (Entry&lt;ChannelOption&lt; ? &gt;, Object&gt; e: options.entrySet()) {
+            <span class="hljs-keyword">try</span> {
+                <span class="hljs-keyword">if</span> (!channel.config().setOption((ChannelOption&lt;Object&gt;) e.getKey(), e.getValue())) {
+                    logger.warn(<span class="hljs-string">"Unknown channel option: "</span> + e);
+                }
+            } <span class="hljs-keyword">catch</span> (Throwable t) {
+                logger.warn(<span class="hljs-string">"Failed to set a channel option: "</span> + channel, t);
+            }
+        }
+    }
+
+    <span class="hljs-comment">// 同样取当前Bootstrap的attrs, 逐个设置到channel中</span>
+    <span class="hljs-keyword">final</span> Map&lt;AttributeKey&lt; ? &gt;, Object&gt; attrs = attrs();
+    <span class="hljs-keyword">synchronized</span> (attrs) {
+        <span class="hljs-keyword">for</span> (Entry&lt;AttributeKey&lt; ? &gt;, Object&gt; e: attrs.entrySet()) {
+            channel.attr((AttributeKey&lt;Object&gt;) e.getKey()).set(e.getValue());
+        }
+    }
+}
+</code></pre>
+<p>总结上在init()方法中, Bootstrap只做了一个事情: <strong>将Bootstrap中保存的信息(handle/options/attrs)设置到新创建的channel</strong>.</p>
 
                     
                     </section>
@@ -802,10 +966,10 @@
         </div>
 
         
-        <a href="../buffer/class_CompositeByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类CompositeByteBuf"><i class="fa fa-angle-left"></i></a>
+        <a href="../bootstrap/class_AbstractBootstrap.html" class="navigation navigation-prev " aria-label="Previous page: 类AbstractBootstrap"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../channel/interface_Channel.html" class="navigation navigation-next " aria-label="Next page: 接口Channel"><i class="fa fa-angle-right"></i></a>
+        <a href="../bootstrap/class_ServerBootstrap.html" class="navigation navigation-next " aria-label="Next page: 类ServerBootstrap"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

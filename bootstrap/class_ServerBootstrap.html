@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Channel | Leaning Netty/Netty学习笔记</title>
+        <title>类ServerBootstrap | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../channel/interface_Channel.html" />
+    <link rel="next" href="../buffer/buffer.html" />
     
     
-    <link rel="prev" href="../buffer/class_CompositeByteBuf.html" />
+    <link rel="prev" href="../bootstrap/class_Bootstrap.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="3" data-basepath=".." data-revision="1450145508609">
+    <div class="book" data-level="1.3" data-basepath=".." data-revision="1450145508609">
     
 
 <div class="book-summary">
@@ -126,7 +126,7 @@
         </li>
     
         
-        <li class="chapter " data-level="1.3" data-path="bootstrap/class_ServerBootstrap.html">
+        <li class="chapter active" data-level="1.3" data-path="bootstrap/class_ServerBootstrap.html">
             
                 
                     <a href="../bootstrap/class_ServerBootstrap.html">
@@ -427,7 +427,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="3" data-path="channel/channel.html">
+        <li class="chapter " data-level="3" data-path="channel/channel.html">
             
                 
                     <a href="../channel/channel.html">
@@ -757,41 +757,135 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_18">
+                    <section class="normal" id="section-gitbook_35">
                     
-                        <p>Channel 是netty中提供的对网络操作的抽象类,类似于NIO中的Channel (java.nio.SocketChannel/java.nio.ServerSocketChannel). Netty的javadoc中时这样描述的:</p>
-<blockquote>
-<p>A nexus to a network socket or a component which is capable of I/O operations such as read, write, connect, and bind.
-<strong>对网络套接字或者有I/O操作能力(例如读,写,连接和绑定)的模块的关联(抽象?)</strong></p>
-</blockquote>
-<p>channel为使用者提供的功能:</p>
-<ul>
-<li>channel当前的状态(例如是不是打开? 是不是连接上了?)</li>
-<li>channel的配置参数(例如接收缓冲区大小)</li>
-<li>提供I/O操作(例如读,写,连接和绑定)</li>
-<li>提供ChannelPipeline,用于处理所有的I/O事件和关联到channel的请求</li>
-</ul>
-<h2 id="">注意事项</h2>
-<p>netty channel的一些注意事项:</p>
+                        <h1 id="serverbootstrap">类ServerBootstrap</h1>
+<p>类ServerBootstrap用于帮助服务器端引导ServerChannel.</p>
+<p>ServerBootstrap除了处理ServerChannel外, 还需要处理从ServerChannel下创建的Channel.Netty中称这两个关系为parent和child.</p>
+<h1 id="">类定义</h1>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ServerBootstrap</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractBootstrap</span>&lt;<span class="hljs-title">ServerBootstrap</span>, <span class="hljs-title">ServerChannel</span>&gt; </span>{}
+</code></pre>
+<h1 id="">类属性</h1>
+<h2 id="childgroup">childGroup</h2>
+<p>childGroup属性用于指定处理客户端连接的EventLoopGroup, 设置的方式有两种:</p>
 <ol>
-<li><p>所有的I/O操作都是异步的</p>
-<p> netty中所有的I/O操作都是异步的. 这意味着任何I/O调用都将立即返回而不保证请求的I/O操作在调用结束时已经完成. 替代的是,你将得到一个返回的 <strong>ChannelFuture</strong> 实例, 当请求的I/O操作成功,失败或者取消时将通知你.</p>
-</li>
-<li><p>channel是有等级的(hierarchical)</p>
-<p> channel可以有一个parent, 取决于它是如何创建的. 例如, SocketChannel 是 ServerSocketChannel 在接受连接时创建的. SocketChannel 的parent()方法就会返回这个ServerSocketChannel.</p>
-<p> 等级结构的语义取决于channel所属的 <strong>transport</strong> 的实现. 例如, 可以写一个新的Channel实现, 创建子channel用于分享一个socket连接, 像BEEP 和 SSH 那样.</p>
-</li>
-<li><p>向下溯型来访问传输特有(transport-specific)操作</p>
-<p> 某些transport 暴露transport特有的一些额外的操作. 将Channel向下溯型为子类型来调用这些操作. 例如, 对于老的I/O datagram transport, DatagramChannel 提供了 multicast join / leave 操作.</p>
-</li>
-<li><p>释放资源</p>
-<p> 有一个非常重要的事情, 当你完成channel的处理之后, 需要调用close() 或 close(ChannelPromise) 方法来释放所有的资源. 这样可以确保所有的资源以正确的方式被释放, 例如文件操作等.</p>
-</li>
+<li>group(parentGroup, childGroup)方法用于单独设置parentGroup, childGroup, 分别用于处理ServerChannel和Channel.</li>
+<li>group(group)方法设置parentGroup, childGroup为使用同一个EventLoopGroup. 注意这个方法覆盖了基类的方法.</li>
 </ol>
-<h2 id="channel-">Channel 继承结构</h2>
-<p>Channel的子类非常多, 仅以最常用的nio为例, NioServerSocketChannel 和 NioSocketChannel 的继承结构如下:</p>
-<p><img src="image/nio_channels.png" alt="nio channels"></p>
-<p>在这个继承结构中, ServerChannel/ServerSocketChannel/SocketChannel 三个interface的内容都非常简单(ServerChannel甚至是空的), 主要内容还在几个abstract channel实现类.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> EventLoopGroup childGroup;
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> ServerBootstrap <span class="hljs-title">group</span><span class="hljs-params">(EventLoopGroup group)</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">group</span><span class="hljs-params">(group, group)</span></span>;
+}
+<span class="hljs-function"><span class="hljs-keyword">public</span> ServerBootstrap <span class="hljs-title">group</span><span class="hljs-params">(EventLoopGroup parentGroup, EventLoopGroup childGroup)</span> </span>{
+    <span class="hljs-keyword">super</span>.group(parentGroup);
+    <span class="hljs-keyword">if</span> (childGroup == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"childGroup"</span>);
+    }
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.childGroup != <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">"childGroup set already"</span>);
+    }
+    <span class="hljs-keyword">this</span>.childGroup = childGroup;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+}
+<span class="hljs-function"><span class="hljs-keyword">public</span> EventLoopGroup <span class="hljs-title">childGroup</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> childGroup;
+}
+</code></pre>
+<h2 id="childoptionschildattrschildhandler">childOptions/childAttrs/childHandler</h2>
+<p>这三个属性和parent的基本对应, 设值方法和检验都是一模一样的:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;ChannelOption&lt;?&gt;, Object&gt; childOptions = <span class="hljs-keyword">new</span> LinkedHashMap&lt;ChannelOption&lt;?&gt;, Object&gt;();
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;AttributeKey&lt;?&gt;, Object&gt; childAttrs = <span class="hljs-keyword">new</span> LinkedHashMap&lt;AttributeKey&lt;?&gt;, Object&gt;();
+
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> ChannelHandler childHandler;
+</code></pre>
+<h1 id="">类方法</h1>
+<h2 id="initchannel">init(channel)方法</h2>
+<p>ServerBootstrap的init(channel)方法相比Bootstrap的要复杂一些, 除了设置options/attrs/handler到channel外, 还需要为child设置childGroup, childHandler, childOptions, childAttrs:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">(Channel channel)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    <span class="hljs-keyword">final</span> Map&lt;ChannelOption&lt; ? &gt;, Object&gt; options = options();
+    <span class="hljs-keyword">synchronized</span> (options) {
+        channel.config().setOptions(options);
+    }
+
+    <span class="hljs-keyword">final</span> Map&lt;AttributeKey&lt; ? &gt;, Object&gt; attrs = attrs();
+    <span class="hljs-keyword">synchronized</span> (attrs) {
+        <span class="hljs-keyword">for</span> (Entry&lt;AttributeKey&lt; ? &gt;, Object&gt; e: attrs.entrySet()) {
+            <span class="hljs-annotation">@SuppressWarnings</span>(<span class="hljs-string">"unchecked"</span>)
+            AttributeKey&lt;Object&gt; key = (AttributeKey&lt;Object&gt;) e.getKey();
+            channel.attr(key).set(e.getValue());
+        }
+    }
+
+    ChannelPipeline p = channel.pipeline();
+
+    <span class="hljs-keyword">final</span> EventLoopGroup currentChildGroup = childGroup;
+    <span class="hljs-keyword">final</span> ChannelHandler currentChildHandler = childHandler;
+    <span class="hljs-keyword">final</span> Entry&lt;ChannelOption&lt; ? &gt;, Object&gt;[] currentChildOptions;
+    <span class="hljs-keyword">final</span> Entry&lt;AttributeKey&lt; ? &gt;, Object&gt;[] currentChildAttrs;
+    <span class="hljs-keyword">synchronized</span> (childOptions) {
+        currentChildOptions = childOptions.entrySet().toArray(newOptionArray(childOptions.size()));
+    }
+    <span class="hljs-keyword">synchronized</span> (childAttrs) {
+        currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(childAttrs.size()));
+    }
+
+    p.addLast(<span class="hljs-keyword">new</span> ChannelInitializer&lt;Channel&gt;() {
+        <span class="hljs-annotation">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initChannel</span><span class="hljs-params">(Channel ch)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+            ChannelPipeline pipeline = ch.pipeline();
+            ChannelHandler handler = handler();
+            <span class="hljs-keyword">if</span> (handler != <span class="hljs-keyword">null</span>) {
+                pipeline.addLast(handler);
+            }
+            pipeline.addLast(<span class="hljs-keyword">new</span> ServerBootstrapAcceptor(
+                    currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+        }
+    });
+}
+</code></pre>
+<p>ServerBootstrapAcceptor的实现, 主要看channelRead()方法:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ServerBootstrapAcceptor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelHandlerAdapter</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead</span><span class="hljs-params">(ChannelHandlerContext ctx, Object msg)</span> </span>{
+        <span class="hljs-comment">// 获取child channel</span>
+        <span class="hljs-keyword">final</span> Channel child = (Channel) msg;
+        <span class="hljs-comment">// 设置childHandler到child channel</span>
+        child.pipeline().addLast(childHandler);
+        <span class="hljs-comment">// 设置childOptions到child channel</span>
+        <span class="hljs-keyword">for</span> (Entry&lt;ChannelOption&lt; ? &gt;, Object&gt; e: childOptions) {
+            <span class="hljs-keyword">try</span> {
+                <span class="hljs-keyword">if</span> (!child.config().setOption((ChannelOption&lt;Object&gt;) e.getKey(), e.getValue())) {
+                    logger.warn(<span class="hljs-string">"Unknown channel option: "</span> + e);
+                }
+            } <span class="hljs-keyword">catch</span> (Throwable t) {
+                logger.warn(<span class="hljs-string">"Failed to set a channel option: "</span> + child, t);
+            }
+        }
+
+        <span class="hljs-comment">// 设置childAttrs到child channel</span>
+        <span class="hljs-keyword">for</span> (Entry&lt;AttributeKey&lt; ? &gt;, Object&gt; e: childAttrs) {
+            child.attr((AttributeKey&lt;Object&gt;) e.getKey()).set(e.getValue());
+        }
+
+        <span class="hljs-comment">// 将child channel注册到childGroup</span>
+        <span class="hljs-keyword">try</span> {
+            childGroup.register(child).addListener(<span class="hljs-keyword">new</span> ChannelFutureListener() {
+                <span class="hljs-annotation">@Override</span>
+                <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(ChannelFuture future)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+                    <span class="hljs-keyword">if</span> (!future.isSuccess()) {
+                        forceClose(child, future.cause());
+                    }
+                }
+            });
+        } <span class="hljs-keyword">catch</span> (Throwable t) {
+            forceClose(child, t);
+        }
+    }
+}
+</code></pre>
 
                     
                     </section>
@@ -802,10 +896,10 @@
         </div>
 
         
-        <a href="../buffer/class_CompositeByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类CompositeByteBuf"><i class="fa fa-angle-left"></i></a>
+        <a href="../bootstrap/class_Bootstrap.html" class="navigation navigation-prev " aria-label="Previous page: 类Bootstrap"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../channel/interface_Channel.html" class="navigation navigation-next " aria-label="Next page: 接口Channel"><i class="fa fa-angle-right"></i></a>
+        <a href="../buffer/buffer.html" class="navigation navigation-next " aria-label="Next page: Buffer"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

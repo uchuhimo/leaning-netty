@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Channel | Leaning Netty/Netty学习笔记</title>
+        <title>类AbstractEventExecutor | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../channel/interface_Channel.html" />
+    <link rel="next" href="../eventloop/class_AbstractScheduledEventExecutor.html" />
     
     
-    <link rel="prev" href="../buffer/class_CompositeByteBuf.html" />
+    <link rel="prev" href="../eventloop/jdk_executor.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="3" data-basepath=".." data-revision="1450145508609">
+    <div class="book" data-level="4.3.2" data-basepath=".." data-revision="1450145508609">
     
 
 <div class="book-summary">
@@ -427,7 +427,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="3" data-path="channel/channel.html">
+        <li class="chapter " data-level="3" data-path="channel/channel.html">
             
                 
                     <a href="../channel/channel.html">
@@ -579,7 +579,7 @@
         </li>
     
         
-        <li class="chapter " data-level="4.3.2" data-path="eventloop/class_AbstractEventExecutor.html">
+        <li class="chapter active" data-level="4.3.2" data-path="eventloop/class_AbstractEventExecutor.html">
             
                 
                     <a href="../eventloop/class_AbstractEventExecutor.html">
@@ -757,41 +757,112 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_18">
+                    <section class="normal" id="section-gitbook_23">
                     
-                        <p>Channel 是netty中提供的对网络操作的抽象类,类似于NIO中的Channel (java.nio.SocketChannel/java.nio.ServerSocketChannel). Netty的javadoc中时这样描述的:</p>
-<blockquote>
-<p>A nexus to a network socket or a component which is capable of I/O operations such as read, write, connect, and bind.
-<strong>对网络套接字或者有I/O操作能力(例如读,写,连接和绑定)的模块的关联(抽象?)</strong></p>
-</blockquote>
-<p>channel为使用者提供的功能:</p>
+                        <p>AbstractEventExecutor类的类定义, 继承自AbstractExecutorService, 另外申明实现EventExecutor接口.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractEventExecutor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractExecutorService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">EventExecutor</span> </span>{
+
+}
+</code></pre>
+<p>我们将AbstractEventExecutor类的代码分成两部分来看.</p>
+<h1 id="eventexecutor">EventExecutor接口实现的代码</h1>
+<p>下面这些代码是实现EventExecutor接口的基本代码,没有特别之处.</p>
+<pre><code class="lang-java">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> EventExecutorGroup parent;
+
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractEventExecutor</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">this</span>(<span class="hljs-keyword">null</span>);        <span class="hljs-comment">// 为什么要容许parent为null?</span>
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractEventExecutor</span><span class="hljs-params">(EventExecutorGroup parent)</span> </span>{
+        <span class="hljs-keyword">this</span>.parent = parent;
+    }
+
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> EventExecutorGroup <span class="hljs-title">parent</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> parent;
+    }
+
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> EventExecutor <span class="hljs-title">next</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// EventExecutor的next()方法需要返回自身引用</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+    }
+
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-annotation">@SuppressWarnings</span>(<span class="hljs-string">"unchecked"</span>)
+    <span class="hljs-keyword">public</span> &lt;E extends EventExecutor&gt; <span class="hljs-function">Set&lt;E&gt; <span class="hljs-title">children</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// EventExecutor的children()方法需要的集合只能包含自身的引用</span>
+        <span class="hljs-keyword">return</span> Collections.singleton((E) <span class="hljs-keyword">this</span>);
+    }
+
+    ...... <span class="hljs-comment">// 其他代码忽略</span>
+</code></pre>
+<h1 id="executorservice">ExecutorService接口实现的代码</h1>
+<h2 id="submit">覆盖submit()方法</h2>
+<p>对ExecutorService接口的实现才是关键代码, 先看三个submit()方法:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> Future&lt;?&gt; submit(Runnable task) {
+    <span class="hljs-keyword">return</span> (Future&lt;?&gt;) <span class="hljs-keyword">super</span>.submit(task);
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Runnable task, T result)</span> </span>{
+    <span class="hljs-keyword">return</span> (Future&lt;T&gt;) <span class="hljs-keyword">super</span>.submit(task, result);
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">Future&lt;T&gt; <span class="hljs-title">submit</span><span class="hljs-params">(Callable&lt;T&gt; task)</span> </span>{
+    <span class="hljs-keyword">return</span> (Future&lt;T&gt;) <span class="hljs-keyword">super</span>.submit(task);
+}
+</code></pre>
+<p>这里只做了一件事情,将返回的Future类型从java.util.concurrent.Future覆盖成了netty自己的io.netty.util.concurrent.Future. (注意:io.netty.util.concurrent.Future是extends java.util.concurrent.Future的)</p>
+<h2 id="newtaskfor">覆盖newTaskFor()方法</h2>
+<p>前面在分析AbstractExecutorService的代码时就说newTaskFor()设计成protected就是为了让子类覆盖的, 果然在AbstractEventExecutor中被覆盖了:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> &lt;T&gt; <span class="hljs-function">RunnableFuture&lt;T&gt; <span class="hljs-title">newTaskFor</span><span class="hljs-params">(Runnable runnable, T value)</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> PromiseTask&lt;T&gt;(<span class="hljs-keyword">this</span>, runnable, value);
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> &lt;T&gt; <span class="hljs-function">RunnableFuture&lt;T&gt; <span class="hljs-title">newTaskFor</span><span class="hljs-params">(Callable&lt;T&gt; callable)</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> PromiseTask&lt;T&gt;(<span class="hljs-keyword">this</span>, callable);
+}
+</code></pre>
+<p>RunnableFuture的实现类从JDK的FutureTask换成了netty自己的PromiseTask. </p>
+<p>PromiseTask我们现在不展开,只是简单看一下类的定义.</p>
+<pre><code class="lang-java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PromiseTask</span>&lt;<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">DefaultPromise</span>&lt;<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title">RunnableFuture</span>&lt;<span class="hljs-title">V</span>&gt; </span>{}
+</code></pre>
+<h2 id="schedule">schedule()方法不被支持</h2>
+<p>四个schedule()方法都直接抛出UnsupportedOperationException.</p>
+<p>注: 在稍后的AbstractScheduledEventExecutor中, 这几个schedule()方法都将被覆盖为可工作的版本.</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> ScheduledFuture&lt;?&gt; schedule(Runnable command, <span class="hljs-keyword">long</span> delay,
+                                   TimeUnit unit) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnsupportedOperationException();
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> &lt;V&gt; <span class="hljs-function">ScheduledFuture&lt;V&gt; <span class="hljs-title">schedule</span><span class="hljs-params">(Callable&lt;V&gt; callable, <span class="hljs-keyword">long</span> delay, TimeUnit unit)</span> </span>{
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnsupportedOperationException();
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> ScheduledFuture&lt;?&gt; scheduleAtFixedRate(Runnable command, <span class="hljs-keyword">long</span> initialDelay, <span class="hljs-keyword">long</span> period, TimeUnit unit) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnsupportedOperationException();
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> ScheduledFuture&lt; ? &gt; scheduleWithFixedDelay(Runnable command, <span class="hljs-keyword">long</span> initialDelay, <span class="hljs-keyword">long</span> delay, TimeUnit unit) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnsupportedOperationException();
+}
+</code></pre>
+<h1 id="">总结</h1>
+<p><img src="image/nio_eventloop.png" alt=""></p>
+<p>其实从类继承结构上可以很清楚的看到AbstractEventExecutor的特别之处:</p>
 <ul>
-<li>channel当前的状态(例如是不是打开? 是不是连接上了?)</li>
-<li>channel的配置参数(例如接收缓冲区大小)</li>
-<li>提供I/O操作(例如读,写,连接和绑定)</li>
-<li>提供ChannelPipeline,用于处理所有的I/O事件和关联到channel的请求</li>
+<li>从jdk通用的Executor框架变成了netty的EventExecutor: 这里开始引入netty的东西比如Future/PromiseTask就理所当然了</li>
+<li>增加了EventExecutor的支持, 自然EventExecutor里面定义的一些基本方法就可以在这里实现</li>
 </ul>
-<h2 id="">注意事项</h2>
-<p>netty channel的一些注意事项:</p>
-<ol>
-<li><p>所有的I/O操作都是异步的</p>
-<p> netty中所有的I/O操作都是异步的. 这意味着任何I/O调用都将立即返回而不保证请求的I/O操作在调用结束时已经完成. 替代的是,你将得到一个返回的 <strong>ChannelFuture</strong> 实例, 当请求的I/O操作成功,失败或者取消时将通知你.</p>
-</li>
-<li><p>channel是有等级的(hierarchical)</p>
-<p> channel可以有一个parent, 取决于它是如何创建的. 例如, SocketChannel 是 ServerSocketChannel 在接受连接时创建的. SocketChannel 的parent()方法就会返回这个ServerSocketChannel.</p>
-<p> 等级结构的语义取决于channel所属的 <strong>transport</strong> 的实现. 例如, 可以写一个新的Channel实现, 创建子channel用于分享一个socket连接, 像BEEP 和 SSH 那样.</p>
-</li>
-<li><p>向下溯型来访问传输特有(transport-specific)操作</p>
-<p> 某些transport 暴露transport特有的一些额外的操作. 将Channel向下溯型为子类型来调用这些操作. 例如, 对于老的I/O datagram transport, DatagramChannel 提供了 multicast join / leave 操作.</p>
-</li>
-<li><p>释放资源</p>
-<p> 有一个非常重要的事情, 当你完成channel的处理之后, 需要调用close() 或 close(ChannelPromise) 方法来释放所有的资源. 这样可以确保所有的资源以正确的方式被释放, 例如文件操作等.</p>
-</li>
-</ol>
-<h2 id="channel-">Channel 继承结构</h2>
-<p>Channel的子类非常多, 仅以最常用的nio为例, NioServerSocketChannel 和 NioSocketChannel 的继承结构如下:</p>
-<p><img src="image/nio_channels.png" alt="nio channels"></p>
-<p>在这个继承结构中, ServerChannel/ServerSocketChannel/SocketChannel 三个interface的内容都非常简单(ServerChannel甚至是空的), 主要内容还在几个abstract channel实现类.</p>
 
                     
                     </section>
@@ -802,10 +873,10 @@
         </div>
 
         
-        <a href="../buffer/class_CompositeByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类CompositeByteBuf"><i class="fa fa-angle-left"></i></a>
+        <a href="../eventloop/jdk_executor.html" class="navigation navigation-prev " aria-label="Previous page: 温习JDK Executor"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../channel/interface_Channel.html" class="navigation navigation-next " aria-label="Next page: 接口Channel"><i class="fa fa-angle-right"></i></a>
+        <a href="../eventloop/class_AbstractScheduledEventExecutor.html" class="navigation navigation-next " aria-label="Next page: 类AbstractScheduledEventExecutor"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Channel | Leaning Netty/Netty学习笔记</title>
+        <title>类SingleThreadEventExecutor | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../channel/interface_Channel.html" />
+    <link rel="next" href="../eventloop/class_SingleThreadEventLoop.html" />
     
     
-    <link rel="prev" href="../buffer/class_CompositeByteBuf.html" />
+    <link rel="prev" href="../eventloop/class_AbstractScheduledEventExecutor.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="3" data-basepath=".." data-revision="1450145508609">
+    <div class="book" data-level="4.3.4" data-basepath=".." data-revision="1450145508609">
     
 
 <div class="book-summary">
@@ -427,7 +427,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="3" data-path="channel/channel.html">
+        <li class="chapter " data-level="3" data-path="channel/channel.html">
             
                 
                     <a href="../channel/channel.html">
@@ -611,7 +611,7 @@
         </li>
     
         
-        <li class="chapter " data-level="4.3.4" data-path="eventloop/class_SingleThreadEventExecutor.html">
+        <li class="chapter active" data-level="4.3.4" data-path="eventloop/class_SingleThreadEventExecutor.html">
             
                 
                     <a href="../eventloop/class_SingleThreadEventExecutor.html">
@@ -757,41 +757,251 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_18">
+                    <section class="normal" id="section-gitbook_25">
                     
-                        <p>Channel 是netty中提供的对网络操作的抽象类,类似于NIO中的Channel (java.nio.SocketChannel/java.nio.ServerSocketChannel). Netty的javadoc中时这样描述的:</p>
-<blockquote>
-<p>A nexus to a network socket or a component which is capable of I/O operations such as read, write, connect, and bind.
-<strong>对网络套接字或者有I/O操作能力(例如读,写,连接和绑定)的模块的关联(抽象?)</strong></p>
-</blockquote>
-<p>channel为使用者提供的功能:</p>
-<ul>
-<li>channel当前的状态(例如是不是打开? 是不是连接上了?)</li>
-<li>channel的配置参数(例如接收缓冲区大小)</li>
-<li>提供I/O操作(例如读,写,连接和绑定)</li>
-<li>提供ChannelPipeline,用于处理所有的I/O事件和关联到channel的请求</li>
-</ul>
-<h2 id="">注意事项</h2>
-<p>netty channel的一些注意事项:</p>
+                        <p>SingleThreadEventExecutor的类定义:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SingleThreadEventExecutor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractScheduledEventExecutor</span> </span>{
+}
+</code></pre>
+<p>在SingleThreadEventExecutor中,存在两个queue:</p>
 <ol>
-<li><p>所有的I/O操作都是异步的</p>
-<p> netty中所有的I/O操作都是异步的. 这意味着任何I/O调用都将立即返回而不保证请求的I/O操作在调用结束时已经完成. 替代的是,你将得到一个返回的 <strong>ChannelFuture</strong> 实例, 当请求的I/O操作成功,失败或者取消时将通知你.</p>
-</li>
-<li><p>channel是有等级的(hierarchical)</p>
-<p> channel可以有一个parent, 取决于它是如何创建的. 例如, SocketChannel 是 ServerSocketChannel 在接受连接时创建的. SocketChannel 的parent()方法就会返回这个ServerSocketChannel.</p>
-<p> 等级结构的语义取决于channel所属的 <strong>transport</strong> 的实现. 例如, 可以写一个新的Channel实现, 创建子channel用于分享一个socket连接, 像BEEP 和 SSH 那样.</p>
-</li>
-<li><p>向下溯型来访问传输特有(transport-specific)操作</p>
-<p> 某些transport 暴露transport特有的一些额外的操作. 将Channel向下溯型为子类型来调用这些操作. 例如, 对于老的I/O datagram transport, DatagramChannel 提供了 multicast join / leave 操作.</p>
-</li>
-<li><p>释放资源</p>
-<p> 有一个非常重要的事情, 当你完成channel的处理之后, 需要调用close() 或 close(ChannelPromise) 方法来释放所有的资源. 这样可以确保所有的资源以正确的方式被释放, 例如文件操作等.</p>
-</li>
+<li>taskQueue: 这个是可以执行的任务队列, SingleThreadEventExecutor自己实现</li>
+<li>scheduledTaskQueue: 定时任务队列, 从AbstractScheduledEventExecutor中继承</li>
 </ol>
-<h2 id="channel-">Channel 继承结构</h2>
-<p>Channel的子类非常多, 仅以最常用的nio为例, NioServerSocketChannel 和 NioSocketChannel 的继承结构如下:</p>
-<p><img src="image/nio_channels.png" alt="nio channels"></p>
-<p>在这个继承结构中, ServerChannel/ServerSocketChannel/SocketChannel 三个interface的内容都非常简单(ServerChannel甚至是空的), 主要内容还在几个abstract channel实现类.</p>
+<h1 id="taskqueue">taskQueue的实现</h1>
+<h2 id="taskqueue">taskQueue的定义和初始化</h2>
+<p>taskQueue构造函数中通过调用newTaskQueue()方法来初始化, 默认是用LinkedBlockingQueue:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Queue&lt;Runnable&gt; taskQueue;
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">SingleThreadEventExecutor</span><span class="hljs-params">(EventExecutorGroup parent, Executor executor, <span class="hljs-keyword">boolean</span> addTaskWakesUp)</span> </span>{
+    ......
+    taskQueue = newTaskQueue();
+}
+<span class="hljs-function"><span class="hljs-keyword">protected</span> Queue&lt;Runnable&gt; <span class="hljs-title">newTaskQueue</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;();
+}
+</code></pre>
+<p>注意newTaskQueue()方法是protected, 依然给子类做覆盖预留了空间.</p>
+<h2 id="polltask">pollTask()方法</h2>
+<p>pollTask()方法用于从taskQueue中获取任务:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Runnable <span class="hljs-title">pollTask</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">assert</span> <span class="hljs-title">inEventLoop</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-keyword">for</span> (;;) {
+        Runnable task = taskQueue.poll();
+        <span class="hljs-keyword">if</span> (task == WAKEUP_TASK) {
+            <span class="hljs-keyword">continue</span>;
+        }
+        <span class="hljs-keyword">return</span> task;
+    }
+}
+</code></pre>
+<p>WAKEUP_TASK先忽略, 后面再细看.</p>
+<h2 id="taketask">takeTask()方法</h2>
+<p>takeTask()方法方法用来获取需要任务, 注意这个时候任务有两个来源: taskQueue和scheduledTask. 因此取任务时需要考虑很多情况:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Runnable <span class="hljs-title">takeTask</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// 断言当前调用线程是event loop的工作线程,自我保护之一</span>
+    <span class="hljs-function"><span class="hljs-keyword">assert</span> <span class="hljs-title">inEventLoop</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-comment">// 检查当前taskQueue, 如果不是BlockingQueue抛异常退出</span>
+    <span class="hljs-keyword">if</span> (!(taskQueue <span class="hljs-keyword">instanceof</span> BlockingQueue)) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnsupportedOperationException();
+    }
+
+    BlockingQueue&lt;Runnable&gt; taskQueue = (BlockingQueue&lt;Runnable&gt;) <span class="hljs-keyword">this</span>.taskQueue;
+    <span class="hljs-keyword">for</span> (;;) {
+        <span class="hljs-comment">// 从scheduledTaskQueue取一个scheduledTask, 注意方法是peek, 另外这个task有可能还没有到执行时间</span>
+        ScheduledFutureTask&lt; ? &gt; scheduledTask = peekScheduledTask();
+        <span class="hljs-keyword">if</span> (scheduledTask == <span class="hljs-keyword">null</span>) {
+            <span class="hljs-comment">// scheduledTask为null, 说明当前scheduledTaskQueue中没有定时任务</span>
+            <span class="hljs-comment">// 这个时候不用考虑定时任务, 直接从taskQueue中拿任务即可</span>
+            Runnable task = <span class="hljs-keyword">null</span>;
+            <span class="hljs-keyword">try</span> {
+                <span class="hljs-comment">// 从taskQueue取任务, 如果没有任务会被阻塞, 直到取到任务,或者被Interrupted</span>
+                task = taskQueue.take();
+                <span class="hljs-comment">// 检查如果是WAKEUP_TASK, 则需要跳过</span>
+                <span class="hljs-keyword">if</span> (task == WAKEUP_TASK) {
+                    task = <span class="hljs-keyword">null</span>;
+                }
+            } <span class="hljs-keyword">catch</span> (InterruptedException e) {
+                <span class="hljs-comment">// Ignore</span>
+            }
+
+            <span class="hljs-comment">// 如果从taskQueue中拿任务成功,则返回, 如果没有任务或者没有成功,则返回的是null</span>
+            <span class="hljs-keyword">return</span> task;
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-comment">// scheduledTask不为null, 说明当前scheduledTaskQueue中有定时任务</span>
+            <span class="hljs-comment">// 但是这个定时任务可能还没有到执行时间, 因此需要检查delayNanos</span>
+            <span class="hljs-keyword">long</span> delayNanos = scheduledTask.delayNanos();
+            Runnable task = <span class="hljs-keyword">null</span>;
+            <span class="hljs-keyword">if</span> (delayNanos &gt; <span class="hljs-number">0</span>) {
+                <span class="hljs-comment">// delayNanos &gt; 0 说明这个定时任务没有到执行时间, 所以这个定时任务是不能用的了</span>
+                <span class="hljs-comment">// 那就需要从taskQueue里面取任务了</span>
+                <span class="hljs-keyword">try</span> {
+                    <span class="hljs-comment">// 从taskQueue取任务, 如果没有任务则最多等待delayNanos时间, 注意这里线程会被阻塞</span>
+                    <span class="hljs-comment">// 如果delayNanos时间内有任务加入到taskQueue, 则可以实时取到这个任务</span>
+                    <span class="hljs-comment">// 线程结束阻塞继续执行, 这个task就可以返回了</span>
+                    <span class="hljs-comment">// 如果delayNanos时间内一直没有任务, 则timeout后线程结束阻塞,poll()方法返回null</span>
+                    task = taskQueue.poll(delayNanos, TimeUnit.NANOSECONDS);
+                } <span class="hljs-keyword">catch</span> (InterruptedException e) {
+                    <span class="hljs-comment">// 还有一种可能就是delayNanos时间内被waken up</span>
+                    <span class="hljs-comment">// 比如有新的scheduledTask加入, delay时间小于前面的delayNanos</span>
+                    <span class="hljs-comment">// 因此不能等待delayNanos timeout,需要提前结束阻塞</span>
+                    <span class="hljs-comment">// Waken up.</span>
+                    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+                }
+            }
+            <span class="hljs-keyword">if</span> (task == <span class="hljs-keyword">null</span>) {
+                <span class="hljs-comment">// We need to fetch the scheduled tasks now as otherwise there may be a chance that</span>
+                <span class="hljs-comment">// scheduled tasks are never executed if there is always one task in the taskQueue.</span>
+                <span class="hljs-comment">// This is for example true for the read task of OIO Transport</span>
+                <span class="hljs-comment">// See https://github.com/netty/netty/issues/1614</span>
+                <span class="hljs-comment">// 继续尝试从scheduledTaskQueue取满足条件的task到taskQueue中</span>
+                fetchFromScheduledTaskQueue();
+                <span class="hljs-comment">// 然后再从taskQueue获取试试</span>
+                task = taskQueue.poll();
+            }
+
+            <span class="hljs-keyword">if</span> (task != <span class="hljs-keyword">null</span>) {
+                <span class="hljs-comment">// 只有task不为空时才返回并退出, 否则前面的for循环就一直</span>
+                <span class="hljs-keyword">return</span> task;
+            }
+        }
+    }
+}
+</code></pre>
+<h1 id="">任务的执行</h1>
+<p>execute()方法被覆盖为:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(Runnable task)</span> </span>{
+    <span class="hljs-keyword">if</span> (task == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"task"</span>);
+    }
+
+    <span class="hljs-keyword">boolean</span> inEventLoop = inEventLoop();
+    <span class="hljs-keyword">if</span> (inEventLoop) {
+        <span class="hljs-comment">// 如果当前线程是event loop线程,则将task加入到taskQueue中</span>
+        addTask(task);
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// 如果是外部线程</span>
+        <span class="hljs-comment">// 调用startExecution()方法先</span>
+        startExecution();
+        <span class="hljs-comment">// 再将task加入到taskQueue中</span>
+        addTask(task);
+        <span class="hljs-keyword">if</span> (isShutdown() &amp;&amp; removeTask(task)) {
+            reject();
+        }
+    }
+
+    <span class="hljs-keyword">if</span> (!addTaskWakesUp &amp;&amp; wakesUpForTask(task)) {
+        wakeup(inEventLoop);
+    }
+}
+</code></pre>
+<p>实际上execute()方法只是将任务加入到taskQueue中, 任务真正的执行还不在这里.</p>
+<h1 id="wake-up">wake up机制</h1>
+<p>在SingleThreadEventExecutor中, 设计了一套wake up机制, 包含以下内容:</p>
+<h2 id="wakeup_task">WAKEUP_TASK任务</h2>
+<p>定了一个什么都不做的task, 这是一个特殊任务,用来做wake up的标记</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Runnable WAKEUP_TASK = <span class="hljs-keyword">new</span> Runnable() {
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// Do nothing.</span>
+    }
+};
+</code></pre>
+<p>比如在pollTask()方法中,遇到WAKEUP_TASK就会自动跳过</p>
+<pre><code class="lang-java">    <span class="hljs-function"><span class="hljs-keyword">protected</span> Runnable <span class="hljs-title">pollTask</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">assert</span> <span class="hljs-title">inEventLoop</span><span class="hljs-params">()</span></span>;
+    <span class="hljs-keyword">for</span> (;;) {
+        Runnable task = taskQueue.poll();
+        <span class="hljs-keyword">if</span> (task == WAKEUP_TASK) {
+            <span class="hljs-keyword">continue</span>;
+        }
+        <span class="hljs-keyword">return</span> task;
+    }
+}
+</code></pre>
+<p>在takeTask()方法中, 也会检查taskQueue取出的task会不会是WAKEUP_TASK:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Runnable <span class="hljs-title">takeTask</span><span class="hljs-params">()</span> </span>{
+......
+    <span class="hljs-keyword">for</span> (;;) {
+        ScheduledFutureTask&lt; ? &gt; scheduledTask = peekScheduledTask();
+        <span class="hljs-keyword">if</span> (scheduledTask == <span class="hljs-keyword">null</span>) {
+            Runnable task = <span class="hljs-keyword">null</span>;
+            <span class="hljs-keyword">try</span> {
+                task = taskQueue.take();
+                <span class="hljs-keyword">if</span> (task == WAKEUP_TASK) {
+                    <span class="hljs-comment">// 如果是WAKEUP_TASK, 则设置task为null</span>
+                    task = <span class="hljs-keyword">null</span>;
+                }
+            } <span class="hljs-keyword">catch</span> (InterruptedException e) {
+                <span class="hljs-comment">// Ignore</span>
+            }
+            <span class="hljs-comment">// 如果是WAKEUP_TASK, 则返回的是null</span>
+            <span class="hljs-keyword">return</span> task;
+        } <span class="hljs-keyword">else</span> {
+            ......
+        }
+    }
+}
+</code></pre>
+<h2 id="wakeup_task">添加WAKEUP_TASK任务</h2>
+<p>WAKEUP_TASK这个特殊任务是在wakeup()方法中被添加, wakeup()方法中还需要检查其他条件:</p>
+<ol>
+<li>inEventLoop==false, 即调用wakeup()的方法应该是外部线程</li>
+<li>如果inEventLoop==true, 则调用wakeup()的方法的时event loop线程本身, 则只有当状态为ST_SHUTTING_DOWN即当前Executor正在关闭中时</li>
+</ol>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">wakeup</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> inEventLoop)</span> </span>{
+    <span class="hljs-keyword">if</span> (!inEventLoop || STATE_UPDATER.get(<span class="hljs-keyword">this</span>) == ST_SHUTTING_DOWN) {
+        taskQueue.add(WAKEUP_TASK);
+    }
+}
+</code></pre>
+<p>wakeup()方法在几个shutdown相关的方法中被调用,比如shutdown()/shutdownGracefully()/confirmShutdown()方法中调用. 但是这里我们不是太关心, 我们看最重要的调用的地方, 在execute()方法中:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">execute</span><span class="hljs-params">(Runnable task)</span> </span>{
+    ......
+    addTask(task);
+    ......
+
+    <span class="hljs-keyword">if</span> (!addTaskWakesUp &amp;&amp; wakesUpForTask(task)) {
+        wakeup(inEventLoop);
+    }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">wakesUpForTask</span><span class="hljs-params">(Runnable task)</span> </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+}
+</code></pre>
+<p>在将task添加到taskQueue中之后, 会做一个检查: 如果addTaskWakesUp是false 并且wakesUpForTask(task)也返回true, 则调用wakeup(inEventLoop), 里面还有一个检测是inEventLoop是false, 这样才真正的会向taskQueue中添加一个WAKEUP_TASK.</p>
+<p>wakesUpForTask(task)方法默认简单返回true, 这是个protected方法,子类可以按照自己的需要覆盖.</p>
+<p>实际在SingleThreadEventLoop中,增加了一个标志接口NonWakeupRunnable, 然后wakesUpForTask()被覆盖为检测是否task是否是NonWakeupRunnable.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SingleThreadEventLoop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SingleThreadEventExecutor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">EventLoop</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">wakesUpForTask</span><span class="hljs-params">(Runnable task)</span> </span>{
+        <span class="hljs-keyword">return</span> !(task <span class="hljs-keyword">instanceof</span> NonWakeupRunnable);
+    }
+
+    <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">NonWakeupRunnable</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Runnable</span> </span>{}
+}
+</code></pre>
+<p>总结说, 在execute(task)方法中, 要最终向taskQueue中添加一个WAKEUP_TASK做wake up, 需要满足以下三个条件:</p>
+<ol>
+<li>addTaskWakesUp==false: 证实在NioEventLoop的实现中, addTaskWakesUp是设置为false的,因此这个条件在NioEventLoop总是被满足</li>
+<li>wakesUpForTask(task)返回true: 只要task不要被标记为NonWakeupRunnable就可以</li>
+<li>inEventLoop==false: 即只能是外部线程调用execute(task)方法</li>
+</ol>
+<h2 id="addtaskwakesup">addTaskWakesUp属性</h2>
+<p>addTaskWakesUp属性在构造函数中设置, 定义为final设值后不可修改:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> addTaskWakesUp;
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">SingleThreadEventExecutor</span><span class="hljs-params">(EventExecutorGroup parent, Executor executor, <span class="hljs-keyword">boolean</span> addTaskWakesUp)</span> </span>{
+    <span class="hljs-keyword">this</span>.addTaskWakesUp = addTaskWakesUp;
+}
+</code></pre>
+<p>经检查,NioEventLoop的实现中, addTaskWakesUp是设置为false的.</p>
+<h2 id="wake-up">wake up总结</h2>
+<ul>
+<li>当外部线程调用schedule()方法添加定时任务时, 定时任务会存放在scheduledTaskQueue中</li>
+<li>用于保存任务的taskQueue是BlockingQueue, 所以当taskQueue中没有任务时, event loop线程会被阻塞</li>
+</ul>
+<p>TBD: 看糊涂了......</p>
 
                     
                     </section>
@@ -802,10 +1012,10 @@
         </div>
 
         
-        <a href="../buffer/class_CompositeByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类CompositeByteBuf"><i class="fa fa-angle-left"></i></a>
+        <a href="../eventloop/class_AbstractScheduledEventExecutor.html" class="navigation navigation-prev " aria-label="Previous page: 类AbstractScheduledEventExecutor"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../channel/interface_Channel.html" class="navigation navigation-next " aria-label="Next page: 接口Channel"><i class="fa fa-angle-right"></i></a>
+        <a href="../eventloop/class_SingleThreadEventLoop.html" class="navigation navigation-next " aria-label="Next page: 类SingleThreadEventLoop"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

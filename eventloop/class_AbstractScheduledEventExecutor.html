@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Channel | Leaning Netty/Netty学习笔记</title>
+        <title>类AbstractScheduledEventExecutor | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../channel/interface_Channel.html" />
+    <link rel="next" href="../eventloop/class_SingleThreadEventExecutor.html" />
     
     
-    <link rel="prev" href="../buffer/class_CompositeByteBuf.html" />
+    <link rel="prev" href="../eventloop/class_AbstractEventExecutor.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="3" data-basepath=".." data-revision="1450145508609">
+    <div class="book" data-level="4.3.3" data-basepath=".." data-revision="1450145508609">
     
 
 <div class="book-summary">
@@ -427,7 +427,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="3" data-path="channel/channel.html">
+        <li class="chapter " data-level="3" data-path="channel/channel.html">
             
                 
                     <a href="../channel/channel.html">
@@ -595,7 +595,7 @@
         </li>
     
         
-        <li class="chapter " data-level="4.3.3" data-path="eventloop/class_AbstractScheduledEventExecutor.html">
+        <li class="chapter active" data-level="4.3.3" data-path="eventloop/class_AbstractScheduledEventExecutor.html">
             
                 
                     <a href="../eventloop/class_AbstractScheduledEventExecutor.html">
@@ -757,41 +757,160 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_18">
+                    <section class="normal" id="section-gitbook_27">
                     
-                        <p>Channel 是netty中提供的对网络操作的抽象类,类似于NIO中的Channel (java.nio.SocketChannel/java.nio.ServerSocketChannel). Netty的javadoc中时这样描述的:</p>
-<blockquote>
-<p>A nexus to a network socket or a component which is capable of I/O operations such as read, write, connect, and bind.
-<strong>对网络套接字或者有I/O操作能力(例如读,写,连接和绑定)的模块的关联(抽象?)</strong></p>
-</blockquote>
-<p>channel为使用者提供的功能:</p>
+                        <p>AbstractScheduledEventExecutor在AbstractEventExecutor的基础上提供了对定时任务的支持, 在内部有一个queue用于保存定时任务.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractScheduledEventExecutor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractEventExecutor</span> </span>{
+
+    Queue&lt;ScheduledFutureTask&lt;?&gt;&gt; scheduledTaskQueue;
+
+    Queue&lt;ScheduledFutureTask&lt;?&gt;&gt; scheduledTaskQueue() {
+        <span class="hljs-keyword">if</span> (scheduledTaskQueue == <span class="hljs-keyword">null</span>) {
+            scheduledTaskQueue = <span class="hljs-keyword">new</span> PriorityQueue&lt;ScheduledFutureTask&lt;?&gt;&gt;();
+        }
+        <span class="hljs-keyword">return</span> scheduledTaskQueue;
+    }
+}
+</code></pre>
+<p>在queue中存放的是ScheduledFutureTask的实例. 在深入研究AbstractScheduledEventExecutor的代码前, 我们先看一下ScheduledFutureTask.</p>
+<h1 id="scheduledfuturetask">ScheduledFutureTask</h1>
+<p>ScheduledFutureTask继承自PromiseTask, 并实现了ScheduledFuture接口. 而ScheduledFuture接口是从java.util.concurrent.ScheduledFuture继承, 再往上是Delayed接口, 这里有对于定时任务而言最重要的一个方法getDelay().</p>
+<pre><code class="lang-java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ScheduledFutureTask</span>&lt;<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">PromiseTask</span>&lt;<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title">ScheduledFuture</span>&lt;<span class="hljs-title">V</span>&gt; </span>{
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getDelay</span><span class="hljs-params">(TimeUnit unit)</span> </span>{
+        <span class="hljs-keyword">return</span> unit.convert(delayNanos(), TimeUnit.NANOSECONDS);
+    }
+}
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ScheduledFuture</span>&lt;<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">Future</span>&lt;<span class="hljs-title">V</span>&gt;, <span class="hljs-title">java</span>.<span class="hljs-title">util</span>.<span class="hljs-title">concurrent</span>.<span class="hljs-title">ScheduledFuture</span>&lt;<span class="hljs-title">V</span>&gt; </span>{
+}
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">ScheduledFuture</span>&lt;<span class="hljs-title">V</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">Delayed</span>, <span class="hljs-title">Future</span>&lt;<span class="hljs-title">V</span>&gt; </span>{
+}
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">Delayed</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Comparable</span>&lt;<span class="hljs-title">Delayed</span>&gt; </span>{
+    <span class="hljs-function"><span class="hljs-keyword">long</span> <span class="hljs-title">getDelay</span><span class="hljs-params">(TimeUnit unit)</span></span>;
+}
+</code></pre>
+<p>getDelay()方法用来返回当前这个对象离执行的延迟值, 即还要过多长时间就要执行了(所谓定时任务).</p>
+<h2 id="scheduledfuturetaskgetdelay">ScheduledFutureTask.getDelay()方法的实现</h2>
+<p>ScheduledFutureTask的getDelay()方法中是通过调用delayNanos()方法得到时间结果,然后转换为指定的时间单位. 而delayNanos()方法是通过计算deadlineNanos()和nanoTime()的差值来计算delay时间的.</p>
 <ul>
-<li>channel当前的状态(例如是不是打开? 是不是连接上了?)</li>
-<li>channel的配置参数(例如接收缓冲区大小)</li>
-<li>提供I/O操作(例如读,写,连接和绑定)</li>
-<li>提供ChannelPipeline,用于处理所有的I/O事件和关联到channel的请求</li>
+<li>deadlineNanos()表示任务计划要执行的时间点</li>
+<li>nanoTime()是取当前时间点</li>
 </ul>
-<h2 id="">注意事项</h2>
-<p>netty channel的一些注意事项:</p>
+<p>两个时间的差值自然是所谓的delay时间.</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">delayNanos</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> Math.max(<span class="hljs-number">0</span>, deadlineNanos() - nanoTime());
+}
+</code></pre>
 <ol>
-<li><p>所有的I/O操作都是异步的</p>
-<p> netty中所有的I/O操作都是异步的. 这意味着任何I/O调用都将立即返回而不保证请求的I/O操作在调用结束时已经完成. 替代的是,你将得到一个返回的 <strong>ChannelFuture</strong> 实例, 当请求的I/O操作成功,失败或者取消时将通知你.</p>
+<li><p>deadlineNanos()方法</p>
+<p> deadlineNanos()方法返回的deadlineNanos属性在构造函数中被指定, 即在任务构造的时候指定任务计划执行的时间点, 这对于定时任务自然是合理的:</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span> deadlineNanos;
+ ScheduledFutureTask(EventExecutor executor, Callable&lt;V&gt; callable, <span class="hljs-keyword">long</span> nanoTime, <span class="hljs-keyword">long</span> period) {
+     ......
+     deadlineNanos = nanoTime;
+ }
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">deadlineNanos</span><span class="hljs-params">()</span> </span>{
+     <span class="hljs-keyword">return</span> deadlineNanos;
+ }
+</code></pre>
 </li>
-<li><p>channel是有等级的(hierarchical)</p>
-<p> channel可以有一个parent, 取决于它是如何创建的. 例如, SocketChannel 是 ServerSocketChannel 在接受连接时创建的. SocketChannel 的parent()方法就会返回这个ServerSocketChannel.</p>
-<p> 等级结构的语义取决于channel所属的 <strong>transport</strong> 的实现. 例如, 可以写一个新的Channel实现, 创建子channel用于分享一个socket连接, 像BEEP 和 SSH 那样.</p>
-</li>
-<li><p>向下溯型来访问传输特有(transport-specific)操作</p>
-<p> 某些transport 暴露transport特有的一些额外的操作. 将Channel向下溯型为子类型来调用这些操作. 例如, 对于老的I/O datagram transport, DatagramChannel 提供了 multicast join / leave 操作.</p>
-</li>
-<li><p>释放资源</p>
-<p> 有一个非常重要的事情, 当你完成channel的处理之后, 需要调用close() 或 close(ChannelPromise) 方法来释放所有的资源. 这样可以确保所有的资源以正确的方式被释放, 例如文件操作等.</p>
+<li><p>nanoTime()方法</p>
+<p> nanoTime()方法并没有直接调用System.nanoTime(), 而是先通过常量START_TIME中保存着类装载时的时间值, 然后nanoTime()方法中用每次取当前时间减去这个START_TIME, 返回其差值.</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> START_TIME = System.nanoTime();
+ <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">long</span> <span class="hljs-title">nanoTime</span><span class="hljs-params">()</span> </span>{
+     <span class="hljs-keyword">return</span> System.nanoTime() - START_TIME;
+ }
+</code></pre>
 </li>
 </ol>
-<h2 id="channel-">Channel 继承结构</h2>
-<p>Channel的子类非常多, 仅以最常用的nio为例, NioServerSocketChannel 和 NioSocketChannel 的继承结构如下:</p>
-<p><img src="image/nio_channels.png" alt="nio channels"></p>
-<p>在这个继承结构中, ServerChannel/ServerSocketChannel/SocketChannel 三个interface的内容都非常简单(ServerChannel甚至是空的), 主要内容还在几个abstract channel实现类.</p>
+<h2 id="scheduledfuturetaskrun">ScheduledFutureTask.run()方法的实现</h2>
+<p>再看ScheduledFutureTask的run()方法, 去掉其他细节处理之后的简化代码如下:</p>
+<pre><code class="lang-java">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>{
+        ......
+        <span class="hljs-keyword">if</span> (setUncancellableInternal()) {
+            V result = task.call();
+            setSuccessInternal(result);
+        }
+        ......
+    }
+</code></pre>
+<p>调用task.call()方法来执行task, 在执行前注明不能cancel, 执行完成后设置执行成功.</p>
+<p>看完ScheduledFutureTask之后, 我们回到类AbstractScheduledEventExecutor.</p>
+<h1 id="">添加定时任务</h1>
+<p>前面看到AbstractScheduledEventExecutor中有一个scheduledTaskQueue用来保存定时任务ScheduledFutureTask, 我们来看这些定时任务时如何添加的.</p>
+<p>先看AbstractScheduledEventExecutor的schedule()方法, 在AbstractEventExecutor中这几个schedule()方法都是简单的抛出UnsupportedOperationException, 现在都被实现:</p>
+<pre><code class="lang-java">    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-keyword">public</span>  ScheduledFuture&lt; ? &gt; schedule(Runnable command, <span class="hljs-keyword">long</span> delay, TimeUnit unit) {
+        ......
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">schedule</span><span class="hljs-params">(<span class="hljs-keyword">new</span> ScheduledFutureTask&lt;Void&gt;(
+                <span class="hljs-keyword">this</span>, toCallable(command)</span>, ScheduledFutureTask.<span class="hljs-title">deadlineNanos</span><span class="hljs-params">(unit.toNanos(delay)</span>)))</span>;
+    }
+</code></pre>
+<p>这几个schedule()方法都是类似的, 利用输入的参数先生成ScheduledFutureTask对象的实例, 然后调用下面这个schedule(ScheduledFutureTask)方法:</p>
+<pre><code class="lang-java">&lt;V&gt; <span class="hljs-function">ScheduledFuture&lt;V&gt; <span class="hljs-title">schedule</span><span class="hljs-params">(<span class="hljs-keyword">final</span> ScheduledFutureTask&lt;V&gt; task)</span> </span>{
+    <span class="hljs-keyword">if</span> (inEventLoop()) {
+        scheduledTaskQueue().add(task);
+    } <span class="hljs-keyword">else</span> {
+        execute(<span class="hljs-keyword">new</span> OneTimeTask() {
+            <span class="hljs-annotation">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>{
+                scheduledTaskQueue().add(task);
+            }
+        });
+    }
+
+    <span class="hljs-keyword">return</span> task;
+}
+</code></pre>
+<p>先通过inEventLoop()判断, 如果当前调用的线程是外部线程, 则生成一个OneTimeTask,然后调用execute()方法, 之后event loop的工作线程会执行这个OneTimeTask将task加入到scheduledTaskQueue; 如果调用的线程就是event loop的工作线程, 则直接enqueue.</p>
+<p>注: scheduleAtFixedRate()方法我们先掉过.</p>
+<h1 id="">获取定时任务</h1>
+<p>pollScheduledTask()方法用来获取到期的定时任务:</p>
+<pre><code class="lang-java">    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> Runnable <span class="hljs-title">pollScheduledTask</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">pollScheduledTask</span><span class="hljs-params">(nanoTime()</span>)</span>;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> Runnable <span class="hljs-title">pollScheduledTask</span><span class="hljs-params">(<span class="hljs-keyword">long</span> nanoTime)</span> </span>{
+        <span class="hljs-function"><span class="hljs-keyword">assert</span> <span class="hljs-title">inEventLoop</span><span class="hljs-params">()</span></span>;
+
+        Queue &lt; ScheduledFutureTask &lt; ? &gt; &gt; scheduledTaskQueue = <span class="hljs-keyword">this</span>.scheduledTaskQueue;
+        ScheduledFutureTask&lt; ? &gt; scheduledTask = scheduledTaskQueue == <span class="hljs-keyword">null</span> ? <span class="hljs-keyword">null</span> : scheduledTaskQueue.peek();
+        <span class="hljs-keyword">if</span> (scheduledTask == <span class="hljs-keyword">null</span>) {
+            <span class="hljs-comment">// 任务队列中没有任务</span>
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+
+        <span class="hljs-keyword">if</span> (scheduledTask.deadlineNanos() &lt; = nanoTime) {
+            <span class="hljs-comment">// 取到的任务满足deadline条件, 可以返回</span>
+            <span class="hljs-comment">// 在返回前将任务从queue中删掉, 注意前面取任务用的时peek()方法</span>
+            scheduledTaskQueue.remove();
+            <span class="hljs-keyword">return</span> scheduledTask;
+        }
+
+        <span class="hljs-comment">// 取到的任务不满足deadline条件,不能返回,只能返回null表示没有满足条件的任务</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    }
+</code></pre>
+<p>hasScheduledTasks()用法用来判断是否有满足条件的定时任务:</p>
+<pre><code class="lang-java">    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">hasScheduledTasks</span><span class="hljs-params">()</span> </span>{
+        Queue&lt;ScheduledFutureTask&lt;?&gt;&gt; scheduledTaskQueue = <span class="hljs-keyword">this</span>.scheduledTaskQueue;
+        ScheduledFutureTask&lt;?&gt; scheduledTask = scheduledTaskQueue == <span class="hljs-keyword">null</span> ? <span class="hljs-keyword">null</span> : scheduledTaskQueue.peek();
+        <span class="hljs-keyword">return</span> scheduledTask != <span class="hljs-keyword">null</span> &amp;&amp; scheduledTask.deadlineNanos() &lt;= nanoTime();
+    }
+</code></pre>
+<p>另外当没有定时任务时, 还有一个nextScheduledTaskNano()方法用来查询下一个可以满足条件的任务的定时时间:</p>
+<pre><code class="lang-java">    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> <span class="hljs-title">nextScheduledTaskNano</span><span class="hljs-params">()</span> </span>{
+        Queue&lt;ScheduledFutureTask&lt; ? &gt;&gt; scheduledTaskQueue = <span class="hljs-keyword">this</span>.scheduledTaskQueue;
+        ScheduledFutureTask&lt; ? &gt; scheduledTask = scheduledTaskQueue == <span class="hljs-keyword">null</span> ? <span class="hljs-keyword">null</span> : scheduledTaskQueue.peek();
+        <span class="hljs-keyword">if</span> (scheduledTask == <span class="hljs-keyword">null</span>) {
+            <span class="hljs-comment">// 没有任务返回-1</span>
+            <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;
+        }
+        <span class="hljs-keyword">return</span> Math.max(<span class="hljs-number">0</span>, scheduledTask.deadlineNanos() - nanoTime());
+    }
+</code></pre>
+<p>这几个方法明显是留着给基类调用的了.</p>
 
                     
                     </section>
@@ -802,10 +921,10 @@
         </div>
 
         
-        <a href="../buffer/class_CompositeByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类CompositeByteBuf"><i class="fa fa-angle-left"></i></a>
+        <a href="../eventloop/class_AbstractEventExecutor.html" class="navigation navigation-prev " aria-label="Previous page: 类AbstractEventExecutor"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../channel/interface_Channel.html" class="navigation navigation-next " aria-label="Next page: 接口Channel"><i class="fa fa-angle-right"></i></a>
+        <a href="../eventloop/class_SingleThreadEventExecutor.html" class="navigation navigation-next " aria-label="Next page: 类SingleThreadEventExecutor"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
