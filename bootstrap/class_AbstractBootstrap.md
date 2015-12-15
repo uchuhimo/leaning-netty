@@ -211,6 +211,24 @@ public B channelFactory(io.netty.channel.ChannelFactory< ? extends C> channelFac
 }
 ```
 
+注: 还有一个channel()方法可以非常方便的设置channelFactory:
+
+```java
+public B channel(Class< ? extends C> channelClass) {
+    if (channelClass == null) {
+        throw new NullPointerException("channelClass");
+    }
+    return channelFactory(new ReflectiveChannelFactory<C>(channelClass));
+}
+```
+
+使用例子如下(这个方法反而是最常用的):
+
+```java
+ServerBootstrap b = new ServerBootstrap();
+b.channel(NioServerSocketChannel.class);
+```
+
 # 方法
 
 ## validate()
