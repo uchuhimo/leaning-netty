@@ -1,0 +1,7 @@
+```uml
+@startuml
+
+ChannelPipeline <|- DefaultChannelPipeline
+
+@enduml
+```

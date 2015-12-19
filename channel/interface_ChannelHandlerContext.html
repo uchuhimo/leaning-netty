@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>类UnreleasableByteBuf | Leaning Netty/Netty学习笔记</title>
+        <title>接口ChannelHandlerContext | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/lack_detection.html" />
+    <link rel="next" href="../channel/class_DefaultChannelPipeline.html" />
     
     
-    <link rel="prev" href="../buffer/buffer_release.html" />
+    <link rel="prev" href="../channel/interface_ChannelPipeline.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="4.2.2.4" data-basepath=".." data-revision="1450494839802">
+    <div class="book" data-level="3.3.2" data-basepath=".." data-revision="1450494839802">
     
 
 <div class="book-summary">
@@ -423,7 +423,7 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3.2" data-path="channel/interface_ChannelHandlerContext.html">
+        <li class="chapter active" data-level="3.3.2" data-path="channel/interface_ChannelHandlerContext.html">
             
                 
                     <a href="../channel/interface_ChannelHandlerContext.html">
@@ -596,7 +596,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="4.2.2.4" data-path="buffer/class_UnreleasableByteBuf.html">
+        <li class="chapter " data-level="4.2.2.4" data-path="buffer/class_UnreleasableByteBuf.html">
             
                 
                     <a href="../buffer/class_UnreleasableByteBuf.html">
@@ -833,70 +833,170 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_8">
+                    <section class="normal" id="section-gitbook_23">
                     
-                        <p>UnreleasableByteBuf 用于阻止他人对目标ByteBuf的销毁.</p>
-<h1 id="">实现方式</h1>
-<p>在构造函数中传入需要包裹的ByteBuf:</p>
-<pre><code class="lang-java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UnreleasableByteBuf</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WrappedByteBuf</span> </span>{
+                        <h1 id="channelhandlercontext">接口ChannelHandlerContext</h1>
+<h1 id="">接口功能</h1>
+<p>参考<a href="http://netty.io/4.1/api/io/netty/channel/ChannelHandlerContext.html" target="_blank">接口ChannelHandlerContext的javadoc</a>说明, 接口ChannelHandlerContext的作用:</p>
+<blockquote>
+<p>使得ChannelHandler可以和它的ChannelPipeline和其他handlers交互.
+  除此之外, handler可以通知ChannelPipeline中的下一个ChannelHandler, 此外还可以动态的修改它所属的ChannelPipeline</p>
+</blockquote>
+<p>具体功能如下(下面翻译自javadoc):</p>
+<ol>
+<li><p>通知</p>
+<p> 可以通过调用这里提供的多个方法中的某一个方法来通知在同一个ChannelPipeline的最近的handler. 参考ChannelPipeline来理解事件是如何流动的.</p>
+</li>
+<li><p>修改pipeline</p>
+<p> 可以通过调用pipeline()方法来得到handler所属的ChannelPipeline. 有一定分量的(non-trivial)应用能在pipeline中动态的插入, 删除, 或者替换handler.</p>
+</li>
+<li><p>保存以便后续可以取回使用</p>
+<p> 可以保存ChannelHandlerContext以便后续使用, 例如在handler方法外触发一个事件, 甚至可以从不同的线程发起.</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelHandlerAdapter</span> </span>{
 
-    UnreleasableByteBuf(ByteBuf buf) {
-        <span class="hljs-keyword">super</span>(buf);
+     <span class="hljs-keyword">private</span> ChannelHandlerContext ctx;
+
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">beforeAdd</span><span class="hljs-params">(ChannelHandlerContext ctx)</span> </span>{
+      <span class="hljs-keyword">this</span>.ctx = ctx;
+     }
+
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">login</span><span class="hljs-params">(String username, password)</span> </span>{
+      ctx.write(<span class="hljs-keyword">new</span> LoginMessage(username, password));
+     }
+     ...
+ }
+</code></pre>
+</li>
+<li><p>存储状态化信息</p>
+<p> AttributeMap.attr(AttributeKey) 容许你保存和访问和handler以及它的上下文相关的状态化信息. 参考ChannelHandler来学习多种推荐用于管理状态化信息的方法.</p>
+</li>
+</ol>
+<p>有一个非常重要的信息, 有些出乎意外, 需要特别注意和留神:</p>
+<blockquote>
+<p><strong>一个hanlder可以多个context</strong></p>
+</blockquote>
+<p>请注意, 一个ChannelHandler实例可以被添加到多个ChannelPipeline. 这意味着一个单独的ChannelHandler实例可以有多个ChannelHandlerContext, 因此一个单独的ChannelHandler实例可以在被调用时传入不同的ChannelHandlerContext, 如果它被添加到多个ChannelPipeline.</p>
+<p>例如, 下面的handler被加入到pipelines多少次, 就会有多少个相互独立的AttributeKey. 不管它是多次添加到同一个pipeline还是不同的pipeline.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FactorialHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelHandlerAdapter</span> </span>{
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> AttributeKey&lt;Integer&gt; counter = AttributeKey.valueOf(<span class="hljs-string">"counter"</span>);
+
+    <span class="hljs-comment">// This handler will receive a sequence of increasing integers starting</span>
+    <span class="hljs-comment">// from 1.</span>
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead</span><span class="hljs-params">(ChannelHandlerContext ctx, Object msg)</span> </span>{
+        Attribute&lt;Integer&gt; attr = ctx.getAttr(counter);
+        Integer a = ctx.getAttr(counter).get();
+
+        <span class="hljs-keyword">if</span> (a == <span class="hljs-keyword">null</span>) {
+            a = <span class="hljs-number">1</span>;
+        }
+
+        attr.set(a * (Integer) msg);
     }
 }
+
+<span class="hljs-comment">// 不同的context对象被赋予"f1", "f2", "f3", 和 "f4", 虽然他们引用到同一个handler实例.</span>
+<span class="hljs-comment">// 由于FactorialHandler在context对象中保存它的状态(使用AttributeKey),</span>
+<span class="hljs-comment">// 一旦这两个pipelines (p1 和 p2)被激活, factorial会计算4次.</span>
+FactorialHandler fh = <span class="hljs-keyword">new</span> FactorialHandler();
+
+ChannelPipeline p1 = Channels.pipeline();
+p1.addLast(<span class="hljs-string">"f1"</span>, fh);
+p1.addLast(<span class="hljs-string">"f2"</span>, fh);
+
+ChannelPipeline p2 = Channels.pipeline();
+p2.addLast(<span class="hljs-string">"f3"</span>, fh);
+p2.addLast(<span class="hljs-string">"f4"</span>, fh);
 </code></pre>
-<p>然后覆盖retain()/release()方法,不做任何操作,只是简单的返回false:</p>
-<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">retain</span><span class="hljs-params">(<span class="hljs-keyword">int</span> increment)</span> </span>{
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">retain</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">release</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">release</span><span class="hljs-params">(<span class="hljs-keyword">int</span> decrement)</span> </span>{
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
-}
+<p>备注: 这个的代码和例子来自javadoc,但是有点问题, ctx.getAttr()应该是ctx.attr(). 已经<a href="https://github.com/netty/netty/pull/4590" target="_blank">pull了一个request给netty</a>.
+更新: 修改已经被netty接受, netty4.1版本会包含这个修订.</p>
+<p>总结: 也就是说, 在handler被添加到pipiline时, 会创建一个新的context, 无视handler是否是一个实例添加多次.</p>
+<h1 id="">接口属性</h1>
+<h2 id="name">name属性</h2>
+<pre><code class="lang-java"><span class="hljs-function">String <span class="hljs-title">name</span><span class="hljs-params">()</span></span>;
 </code></pre>
-<p>再覆盖slice()/readSlice()/duplicate()方法,将需要返回的ByteBuf再次包装为UnreleasableByteBuf:</p>
-<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">readSlice</span><span class="hljs-params">(<span class="hljs-keyword">int</span> length)</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf.readSlice(length)</span>)</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">slice</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf.slice()</span>)</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">slice</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, <span class="hljs-keyword">int</span> length)</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf.slice(index, length)</span>)</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">duplicate</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf.duplicate()</span>)</span>;
-}
+<p>ChannelHandlerContext的名字, unique,不能重复.</p>
+<p>这个名字在ChannelHandler被添加到ChannelPipeline时使用. 例如: p1.addLast(&quot;f1&quot;, handler);</p>
+<p>也可以用来通过名字在ChannelPipeline访问已经注册的ChannelHandler.</p>
+<pre><code class="lang-java"><span class="hljs-function">ChannelHandler <span class="hljs-title">get</span><span class="hljs-params">(String name)</span></span>;
 </code></pre>
-<h1 id="">使用方式</h1>
-<p>Unpooled中提供unreleasableBuffer()工具方法,代码够简单的:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">unreleasableBuffer</span><span class="hljs-params">(ByteBuf buf)</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf)</span></span>;
-}
+<p>实际上就是在ChannelPipeline的各个方法中出现的参数 name 或者 baseName.</p>
+<h1 id="">接口方法</h1>
+<h2 id="">获取属性</h2>
+<h3 id="removed">removed</h3>
+<p>removed属性如果是true, 表明属于当前context的ChannelHandler已经从ChannelPipeline中移除.</p>
+<p>注意这个方法通常只在EventLoop中调用.</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isRemoved</span><span class="hljs-params">()</span></span>;
 </code></pre>
-<p>一般的使用场景就是定义特殊的常量ByteBuf,然后包装成unreleasableBuffer()后就不怕被其他人错误的销毁掉:</p>
-<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HttpObjectEncoder</span>&lt;<span class="hljs-title">H</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">HttpMessage</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">MessageToMessageEncoder</span>&lt;<span class="hljs-title">Object</span>&gt; </span>{
-    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ByteBuf CRLF_BUF = unreleasableBuffer(directBuffer(CRLF.length).writeBytes(CRLF));
-}
+<h2 id="context">获取context保存相关对象</h2>
+<p>以下方法用于获取context相关的几个重要对象, context中保存有他们的引用:</p>
+<ul>
+<li>channel: 当前的channel, 代表当前的连接</li>
+<li>handler: 当前的ChannelHandler, 记住context是一个handler实例添加到一个pipeline时产生的一个&quot;契约&quot;(subscription).</li>
+<li>pipeline: 当前所在的ChannelPipeline, 解释同上</li>
+<li>executor: EventExecutor, 用于执行任意任务</li>
+<li>alloc: 当前被分配的ByteBufAllocator, 用于ByteBuf的内存分配</li>
+<li>invoker: netty5.0中多暴露了一个invoker, netty4.1中没有</li>
+</ul>
+<pre><code class="lang-java"><span class="hljs-function">Channel <span class="hljs-title">channel</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandler <span class="hljs-title">handler</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelPipeline <span class="hljs-title">pipeline</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">EventExecutor <span class="hljs-title">executor</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ByteBufAllocator <span class="hljs-title">alloc</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<h2 id="inboundio">Inbound的I/O事件方法</h2>
+<p>这些方法会导致当前Channel的ChannelPipeline中包含的下一个ChannelInboundHandler的相应的方法被调用:</p>
+<pre><code class="lang-java"><span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelRegistered</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelUnregistered</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelActive</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelInactive</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireExceptionCaught</span><span class="hljs-params">(Throwable cause)</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireUserEventTriggered</span><span class="hljs-params">(Object event)</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelRead</span><span class="hljs-params">(Object msg)</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelReadComplete</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelWritabilityChanged</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<h2 id="outboundio">outbound的I/O方法</h2>
+<p>这些方法会导致当前Channel的ChannelPipeline中包含的下一个ChannelOutboundHandler的相应的方法被调用:</p>
+<pre><code class="lang-java"><span class="hljs-function">ChannelFuture <span class="hljs-title">bind</span><span class="hljs-params">(SocketAddress localAddress)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">connect</span><span class="hljs-params">(SocketAddress remoteAddress)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">connect</span><span class="hljs-params">(SocketAddress remoteAddress, SocketAddress localAddress)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">disconnect</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">close</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">deregister</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<p>以及以上方法的带promise参数的重载方法:</p>
+<pre><code class="lang-java"><span class="hljs-function">ChannelFuture <span class="hljs-title">bind</span><span class="hljs-params">(SocketAddress localAddress, ChannelPromise promise)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">connect</span><span class="hljs-params">(SocketAddress remoteAddress, ChannelPromise promise)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">connect</span><span class="hljs-params">(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">disconnect</span><span class="hljs-params">(ChannelPromise promise)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">close</span><span class="hljs-params">(ChannelPromise promise)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">deregister</span><span class="hljs-params">(ChannelPromise promise)</span></span>;
+</code></pre>
+<h2 id="io">I/O操作方法</h2>
+<pre><code class="lang-java"><span class="hljs-comment">// 请求从Channel中读取数据到第一个inbound buffer, 如果数据被读取则触发ChannelInboundHandler.channelRead(ChannelHandlerContext, Object) 事件, 并触发channelReadComplete事件以便handler可以决定继续读取.</span>
+<span class="hljs-comment">// 将会导致当前Channel的ChannelPipeline中包含的下一个ChannelOutboundHandler的ChannelOutboundHandler.read(ChannelHandlerContext)方法被调用</span>
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">read</span><span class="hljs-params">()</span></span>;
+
+<span class="hljs-comment">// 请求通过当前ChannelHandlerContext将消息写到ChannelPipeline.</span>
+<span class="hljs-comment">// 这个方法不会要求做实际的flush, 因此一旦你想将所有待处理的数据flush到实际的transport请务必调用flush()方法.    </span>
+<span class="hljs-function">ChannelFuture <span class="hljs-title">write</span><span class="hljs-params">(Object msg)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">write</span><span class="hljs-params">(Object msg, ChannelPromise promise)</span></span>;
+
+<span class="hljs-comment">// 请求通过ChannelOutboundInvokerflush所有待处理的消息</span>
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">flush</span><span class="hljs-params">()</span></span>;
+
+<span class="hljs-comment">// write()和flush()方法的快捷调用版本</span>
+<span class="hljs-function">ChannelFuture <span class="hljs-title">writeAndFlush</span><span class="hljs-params">(Object msg, ChannelPromise promise)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">writeAndFlush</span><span class="hljs-params">(Object msg)</span></span>;
+</code></pre>
+<p>TODO: 不理解为什么read()会导致ChannelOutboundHandler.read(ChannelHandlerContext)方法被调用, 为什么是Outbound? 后面注意看实现代码.</p>
+<h2 id="futurepromise">创建Future/Promise的方法</h2>
+<pre><code class="lang-java"><span class="hljs-function">ChannelProgressivePromise <span class="hljs-title">newProgressivePromise</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">newSucceededFuture</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">newFailedFuture</span><span class="hljs-params">(Throwable cause)</span></span>;
+<span class="hljs-function">ChannelPromise <span class="hljs-title">voidPromise</span><span class="hljs-params">()</span></span>;
 </code></pre>
 
                     
@@ -908,10 +1008,10 @@
         </div>
 
         
-        <a href="../buffer/buffer_release.html" class="navigation navigation-prev " aria-label="Previous page: buffer的释放"><i class="fa fa-angle-left"></i></a>
+        <a href="../channel/interface_ChannelPipeline.html" class="navigation navigation-prev " aria-label="Previous page: 接口ChannelPipeline"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/lack_detection.html" class="navigation navigation-next " aria-label="Next page: buffer泄露检测"><i class="fa fa-angle-right"></i></a>
+        <a href="../channel/class_DefaultChannelPipeline.html" class="navigation navigation-next " aria-label="Next page: 类DefaultChannelPipeline"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

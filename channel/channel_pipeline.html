@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>类UnreleasableByteBuf | Leaning Netty/Netty学习笔记</title>
+        <title>Channel Pipeline | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/lack_detection.html" />
+    <link rel="next" href="../channel/interface_ChannelPipeline.html" />
     
     
-    <link rel="prev" href="../buffer/buffer_release.html" />
+    <link rel="prev" href="../channel/interface_Unsafe.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="4.2.2.4" data-basepath=".." data-revision="1450494839802">
+    <div class="book" data-level="3.3" data-basepath=".." data-revision="1450494839802">
     
 
 <div class="book-summary">
@@ -390,7 +390,7 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3" data-path="channel/channel_pipeline.html">
+        <li class="chapter active" data-level="3.3" data-path="channel/channel_pipeline.html">
             
                 
                     <a href="../channel/channel_pipeline.html">
@@ -596,7 +596,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="4.2.2.4" data-path="buffer/class_UnreleasableByteBuf.html">
+        <li class="chapter " data-level="4.2.2.4" data-path="buffer/class_UnreleasableByteBuf.html">
             
                 
                     <a href="../buffer/class_UnreleasableByteBuf.html">
@@ -833,71 +833,19 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_8">
+                    <section class="normal" id="section-gitbook_19">
                     
-                        <p>UnreleasableByteBuf 用于阻止他人对目标ByteBuf的销毁.</p>
-<h1 id="">实现方式</h1>
-<p>在构造函数中传入需要包裹的ByteBuf:</p>
-<pre><code class="lang-java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UnreleasableByteBuf</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WrappedByteBuf</span> </span>{
-
-    UnreleasableByteBuf(ByteBuf buf) {
-        <span class="hljs-keyword">super</span>(buf);
-    }
-}
-</code></pre>
-<p>然后覆盖retain()/release()方法,不做任何操作,只是简单的返回false:</p>
-<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">retain</span><span class="hljs-params">(<span class="hljs-keyword">int</span> increment)</span> </span>{
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">retain</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">release</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">release</span><span class="hljs-params">(<span class="hljs-keyword">int</span> decrement)</span> </span>{
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
-}
-</code></pre>
-<p>再覆盖slice()/readSlice()/duplicate()方法,将需要返回的ByteBuf再次包装为UnreleasableByteBuf:</p>
-<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">readSlice</span><span class="hljs-params">(<span class="hljs-keyword">int</span> length)</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf.readSlice(length)</span>)</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">slice</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf.slice()</span>)</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">slice</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index, <span class="hljs-keyword">int</span> length)</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf.slice(index, length)</span>)</span>;
-}
-
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">duplicate</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf.duplicate()</span>)</span>;
-}
-</code></pre>
-<h1 id="">使用方式</h1>
-<p>Unpooled中提供unreleasableBuffer()工具方法,代码够简单的:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">unreleasableBuffer</span><span class="hljs-params">(ByteBuf buf)</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">UnreleasableByteBuf</span><span class="hljs-params">(buf)</span></span>;
-}
-</code></pre>
-<p>一般的使用场景就是定义特殊的常量ByteBuf,然后包装成unreleasableBuffer()后就不怕被其他人错误的销毁掉:</p>
-<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HttpObjectEncoder</span>&lt;<span class="hljs-title">H</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">HttpMessage</span>&gt; <span class="hljs-keyword">extends</span> <span class="hljs-title">MessageToMessageEncoder</span>&lt;<span class="hljs-title">Object</span>&gt; </span>{
-    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ByteBuf CRLF_BUF = unreleasableBuffer(directBuffer(CRLF.length).writeBytes(CRLF));
-}
-</code></pre>
+                        <h1 id="channel-pipeline">Channel Pipeline</h1>
+<p>netty中和Servlet Filter机制类似, 实现了的Channel的过滤器, 具体就是ChannelPipeline和ChannelHandler.</p>
+<ul>
+<li>ChannelHandler: 负责对I/O事件进行拦截和处理</li>
+<li>ChannelPipeline: ChannelHandler的容器, 管理ChannelHandler</li>
+</ul>
+<h1 id="pipeline">Pipeline的构建</h1>
+<p>通常不需要用户自己构建Pipeline, 在使用ServerBootstrap或者Bootstrap时, ServerBootstrap或者Bootstrap会为每个Channel创建一个独立的Pipeline.</p>
+<h1 id="">代码分析</h1>
+<p>ChannelPipeline的代码不多,继承关系简单, 就一个ChannelPipeline接口和一个默认实现DefaultChannelPipeline.</p>
+<p><img src="../assets/images/uml/channel/channel_pipeline.png" alt=""></p>
 
                     
                     </section>
@@ -908,10 +856,10 @@
         </div>
 
         
-        <a href="../buffer/buffer_release.html" class="navigation navigation-prev " aria-label="Previous page: buffer的释放"><i class="fa fa-angle-left"></i></a>
+        <a href="../channel/interface_Unsafe.html" class="navigation navigation-prev " aria-label="Previous page: Channel Unsafe"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/lack_detection.html" class="navigation navigation-next " aria-label="Next page: buffer泄露检测"><i class="fa fa-angle-right"></i></a>
+        <a href="../channel/interface_ChannelPipeline.html" class="navigation navigation-next " aria-label="Next page: 接口ChannelPipeline"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
