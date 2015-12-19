@@ -20,6 +20,8 @@ bui# Summary
 	* [Channel Pipeline](channel/channel_pipeline.md)
 		* [接口ChannelPipeline](channel/interface_ChannelPipeline.md)
 		* [接口ChannelHandlerContext](channel/interface_ChannelHandlerContext.md)
+			* 	[类AbstractChannelHandlerContext](channel/class_AbstractChannelHandlerContext.md)
+			* 	[类DefaultChannelHandlerContext](channel/class_DefaultChannelHandlerContext.md)
 		* [类DefaultChannelPipeline](channel/class_DefaultChannelPipeline.md)
 * [Buffer](buffer/buffer.md)
 	* [ByteBuf继承结构](buffer/inheritance.md)
