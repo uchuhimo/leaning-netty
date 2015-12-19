@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>Zero Copy | Leaning Netty/Netty学习笔记</title>
+        <title>类AbstractChannelHandlerContext | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/class_SlicedByteBuf.html" />
+    <link rel="next" href="../channel/class_DefaultChannelHandlerContext.html" />
     
     
-    <link rel="prev" href="../buffer/class_LeakAwareByteBuf.html" />
+    <link rel="prev" href="../channel/interface_ChannelHandlerContext.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="4.2.3" data-basepath=".." data-revision="1450537798230">
+    <div class="book" data-level="3.3.2.1" data-basepath=".." data-revision="1450537798230">
     
 
 <div class="book-summary">
@@ -440,7 +440,7 @@
                 
     
         
-        <li class="chapter " data-level="3.3.2.1" data-path="channel/class_AbstractChannelHandlerContext.html">
+        <li class="chapter active" data-level="3.3.2.1" data-path="channel/class_AbstractChannelHandlerContext.html">
             
                 
                     <a href="../channel/class_AbstractChannelHandlerContext.html">
@@ -703,7 +703,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="4.2.3" data-path="buffer/zero_copy.html">
+        <li class="chapter " data-level="4.2.3" data-path="buffer/zero_copy.html">
             
                 
                     <a href="../buffer/zero_copy.html">
@@ -871,40 +871,239 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_17">
+                    <section class="normal" id="section-gitbook_21">
                     
-                        <p>netty中的Zero-copy与传统意义的zero-copy不太一样,注意不要混淆:</p>
-<ul>
-<li>传统的zero-copy是IO传输过程中，数据无需中内核态到用户态、用户态到内核态的数据拷贝，减少拷贝次数。</li>
-<li>Netty的zero-copy则是完全在用户态，或者说传输层的zero-copy机制，可以参考下图。</li>
-</ul>
-<p>在协议传输过程中，通常需要拆包、合并包，常见的做法就是通过System.arrayCopy来复制需要的数据,但这样需要付出内容复制的开销.</p>
-<p>Netty通过ByteBuf.slice和Unpooled.wrappedBuffer等方法拆分、合并Buffer,做到无需拷贝数据。</p>
-<h1 id="slice">slice</h1>
-<p>slice是拆包,在原有包的基础上获取其中部分内容, 为此在ByteBuf中定义有slice()方法.</p>
-<p><img src="image/slice-buffer.png" alt="slice-buffer.png"></p>
-<h1 id="wrap">wrap</h1>
-<p>netty提供了一系列的方法,用来将多个数据源包装成一个可以直接使用的ByteBuf对象,以避免内容复制.</p>
-<p>这些方法处理的数据类型包括:</p>
-<ul>
-<li>byte[]</li>
-<li>ByteBuf: wraps the specified buffer&#39;s readable bytes</li>
-<li>ByteBuffer (java nio)</li>
-</ul>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">byte</span>[] array)</span> </span>{}
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">byte</span>[] array, <span class="hljs-keyword">int</span> offset, <span class="hljs-keyword">int</span> length)</span> </span>{}
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(ByteBuffer buffer)</span> </span>{}
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(ByteBuf buffer)</span> </span>{}
-
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">byte</span>[]... arrays)</span> </span>{}
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(ByteBuf... buffers)</span> </span>{}
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(ByteBuffer... buffers)</span> </span>{}
-
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> maxNumComponents, <span class="hljs-keyword">byte</span>[]... arrays)</span> </span>{}
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> maxNumComponents, ByteBuf... buffers)</span> </span>{}
-<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">wrappedBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> maxNumComponents, ByteBuffer... buffers)</span> </span>{}
+                        <h1 id="abstractchannelhandlercontext">类AbstractChannelHandlerContext</h1>
+<h1 id="">类定义</h1>
+<pre><code class="lang-java"><span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractChannelHandlerContext</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelHandlerContext</span>, <span class="hljs-title">ResourceLeakHint</span> </span>{}
 </code></pre>
-<p>可以包装一个或者多个数据.</p>
+<h1 id="">类属性</h1>
+<p>只有一个构造函数, name/pipeline/invoker/inbound/outbound都在这里初始化:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> inbound;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> outbound;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ChannelPipeline pipeline;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String name;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> removed;
+
+<span class="hljs-keyword">final</span> ChannelHandlerInvoker invoker;
+
+AbstractChannelHandlerContext(
+        DefaultChannelPipeline pipeline, ChannelHandlerInvoker invoker,
+        String name, <span class="hljs-keyword">boolean</span> inbound, <span class="hljs-keyword">boolean</span> outbound) {
+
+    <span class="hljs-keyword">if</span> (name == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"name"</span>);
+    }
+
+    <span class="hljs-keyword">this</span>.pipeline = pipeline;        <span class="hljs-comment">// 为什么pipeline不做null检测? 从代码实现上看肯定不能为null的, 既然检查了name就应该检查pipeline</span>
+    <span class="hljs-keyword">this</span>.name = name;
+    <span class="hljs-keyword">this</span>.invoker = invoker;            <span class="hljs-comment">// 这个invoker是容许设置为null的!! 看invoker()函数</span>
+
+    <span class="hljs-keyword">this</span>.inbound = inbound;
+    <span class="hljs-keyword">this</span>.outbound = outbound;
+}
+</code></pre>
+<p>TODO: 准备增加pipeline的null check, 然后pull给netty. 等上一个request被接受再试.</p>
+<p>有几个属性的getter方法比较特殊:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> ByteBufAllocator <span class="hljs-title">alloc</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// alloc从channel的config中获取</span>
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">channel</span><span class="hljs-params">()</span>.<span class="hljs-title">config</span><span class="hljs-params">()</span>.<span class="hljs-title">getAllocator</span><span class="hljs-params">()</span></span>;
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> EventExecutor <span class="hljs-title">executor</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// EventExecutor来自invoker</span>
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">invoker</span><span class="hljs-params">()</span>.<span class="hljs-title">executor</span><span class="hljs-params">()</span></span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelHandlerInvoker <span class="hljs-title">invoker</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// 检查invoker是否有设置为null, 见构造函数</span>
+    <span class="hljs-keyword">if</span> (invoker == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-comment">// 如果构造函数中设置为null了,则通过unsafe来获取</span>
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">channel</span><span class="hljs-params">()</span>.<span class="hljs-title">unsafe</span><span class="hljs-params">()</span>.<span class="hljs-title">invoker</span><span class="hljs-params">()</span></span>;
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">return</span> invoker;
+    }
+}
+</code></pre>
+<h2 id="invoker">invoker属性</h2>
+<p>invoker容许为null比较奇怪, 特意查了一下, 有两个地方是可以设置invoker为null的:</p>
+<pre><code class="lang-java">HeadContext(DefaultChannelPipeline pipeline) {
+    <span class="hljs-keyword">super</span>(pipeline, <span class="hljs-keyword">null</span>, HEAD_NAME, <span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>);
+    unsafe = pipeline.channel().unsafe();
+}
+TailContext(DefaultChannelPipeline pipeline) {
+    <span class="hljs-keyword">super</span>(pipeline, <span class="hljs-keyword">null</span>, TAIL_NAME, <span class="hljs-keyword">true</span>, <span class="hljs-keyword">false</span>);
+}
+</code></pre>
+<p>TODO: 后面看HeadContext/TailContext的代码实现时再仔细看.</p>
+<h2 id="removed">removed属性</h2>
+<p>这是一个非常特别的属性, 只用于非常极端的情况, getter/setter方法如下:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">setRemoved</span><span class="hljs-params">()</span> </span>{
+    removed = <span class="hljs-keyword">true</span>;
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isRemoved</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> removed;
+}
+</code></pre>
+<p>其中etRemoved()还不是public的, 调用的地方只有一处, 在类DefaultChannelPipeline:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">callHandlerRemoved0</span><span class="hljs-params">(<span class="hljs-keyword">final</span> AbstractChannelHandlerContext ctx)</span> </span>{
+    <span class="hljs-comment">// Notify the complete removal.</span>
+    <span class="hljs-keyword">try</span> {
+        ctx.handler().handlerRemoved(ctx);
+        ctx.setRemoved();
+    } <span class="hljs-keyword">catch</span> (Throwable t) {
+        fireExceptionCaught(<span class="hljs-keyword">new</span> ChannelPipelineException(
+                ctx.handler().getClass().getName() + <span class="hljs-string">".handlerRemoved() has thrown an exception."</span>, t));
+    }
+}
+</code></pre>
+<p>只有当一个handler被从pipiline上remove或者replace时, 才会代用setRemoved()方法.</p>
+<p>而这个属性使用的地方也非常少, 只找到三处调用, 从注释上看都和issues 1664相关:</p>
+<pre><code class="lang-java"><span class="hljs-comment">// Check if this handler was removed before continuing the loop.</span>
+<span class="hljs-comment">// If it was removed, it is not safe to continue to operate on the buffer.</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// See https://github.com/netty/netty/issues/1664</span>
+<span class="hljs-keyword">if</span> (ctx.isRemoved()) {
+    <span class="hljs-keyword">break</span>;
+}
+</code></pre>
+<h2 id="next--prev">next 和 prev</h2>
+<p>每个AbstractChannelHandlerContext都保存有两个属性, next和prev, 明显是做链表.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">volatile</span> AbstractChannelHandlerContext next;
+<span class="hljs-keyword">volatile</span> AbstractChannelHandlerContext prev;
+</code></pre>
+<p>在DefaultChannelPipeline中, 则保存了名为head和tail的两个引用:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultChannelPipeline</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelPipeline</span> </span>{
+    <span class="hljs-keyword">final</span> AbstractChannelHandlerContext head;
+    <span class="hljs-keyword">final</span> AbstractChannelHandlerContext tail;
+}
+</code></pre>
+<p>这样在DefaultChannelPipeline中就实现了一个从head一路next/next到tail, 再从tail一路prev/prev到head的一个双向链表.</p>
+<h2 id="inbound--outbound">inbound 和 outbound</h2>
+<p>这两个属性用来表明当前handler是inbound还是outbound, 通常和ChannelInboundHandler/ChannelOutboundHandler联系起来,.</p>
+<p>比如HeadContext实现了ChannelOutboundHandler, 而TailContext实现了ChannelInboundHandler, 他们在调用super构造函数时就写死了inbound和outbound属性:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HeadContext</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractChannelHandlerContext</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelOutboundHandler</span> </span>{
+    HeadContext(DefaultChannelPipeline pipeline) {
+        <span class="hljs-keyword">super</span>(pipeline, <span class="hljs-keyword">null</span>, HEAD_NAME, <span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>);    <span class="hljs-comment">// inbound=false, outbound=true</span>
+    }
+}
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TailContext</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractChannelHandlerContext</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelInboundHandler</span> </span>{
+    TailContext(DefaultChannelPipeline pipeline) {
+        <span class="hljs-keyword">super</span>(pipeline, <span class="hljs-keyword">null</span>, TAIL_NAME, <span class="hljs-keyword">true</span>, <span class="hljs-keyword">false</span>);    <span class="hljs-comment">// inbound=true, outbound=false</span>
+    }
+}
+</code></pre>
+<p>注: netty设计上是使用两个boolean来记录inbound/outbound, 不知道是否会存在即是inbound又是outbound
+的情况?</p>
+<p>在DefaultChannelHandlerContext的实现中, 通过检查传入的handler来判断inbound/outbound, 判断的方法非常直接, instanceof ChannelInboundHandler/ChannelOutboundHandler:</p>
+<pre><code class="lang-java">DefaultChannelHandlerContext(
+        ChannelPipeline pipeline, ChannelHandlerInvoker invoker, String name, ChannelHandler handler) {
+    <span class="hljs-keyword">super</span>(pipeline, invoker, name, isInbound(handler), isOutbound(handler));
+    <span class="hljs-keyword">if</span> (handler == <span class="hljs-keyword">null</span>) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"handler"</span>);
+    }
+    <span class="hljs-keyword">this</span>.handler = handler;
+}
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isInbound</span><span class="hljs-params">(ChannelHandler handler)</span> </span>{
+    <span class="hljs-keyword">return</span> handler <span class="hljs-keyword">instanceof</span> ChannelInboundHandler;
+}
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isOutbound</span><span class="hljs-params">(ChannelHandler handler)</span> </span>{
+    <span class="hljs-keyword">return</span> handler <span class="hljs-keyword">instanceof</span> ChannelOutboundHandler;
+}
+</code></pre>
+<p>注: 如果一个handler同时实现ChannelInboundHandler/ChannelOutboundHandler两个接口, 是有可能的.但具体是否有这种情况还不清楚, 继续看代码.</p>
+<h1 id="">类方法</h1>
+<h2 id="attributemap">来自AttributeMap的方法</h2>
+<p>ChannelHandlerContext申明继承AttributeMap, AbstractChannelHandlerContext中有实现AttributeMap要求的两个方法:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">Attribute&lt;T&gt; <span class="hljs-title">attr</span><span class="hljs-params">(AttributeKey&lt;T&gt; key)</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">channel</span><span class="hljs-params">()</span>.<span class="hljs-title">attr</span><span class="hljs-params">(key)</span></span>;
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">hasAttr</span><span class="hljs-params">(AttributeKey&lt;T&gt; key)</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">channel</span><span class="hljs-params">()</span>.<span class="hljs-title">hasAttr</span><span class="hljs-params">(key)</span></span>;
+}
+</code></pre>
+<p>最终还是delegate给channel的对应方法了.</p>
+<h2 id="inboundio">Inbound的I/O事件方法</h2>
+<p>这些方法最终都是delegate给invoker的对应方法, 以fireChannelRegistered()为例:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelHandlerContext <span class="hljs-title">fireChannelRegistered</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// 找到下一个inbound的context</span>
+    AbstractChannelHandlerContext next = findContextInbound();
+    <span class="hljs-comment">// 调用invoker的invokeChannelRegistered()方法</span>
+    next.invoker().invokeChannelRegistered(next);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> AbstractChannelHandlerContext <span class="hljs-title">findContextInbound</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// ctx初始化为指向当前context, 也就是this</span>
+    AbstractChannelHandlerContext ctx = <span class="hljs-keyword">this</span>;
+    do {
+        <span class="hljs-comment">// 然后指向ctx的next指针</span>
+        ctx = ctx.next;
+    } <span class="hljs-keyword">while</span> (!ctx.inbound);  <span class="hljs-comment">// 检查是否是inbound, 如果不是则继续next,直到找到下一个</span>
+    <span class="hljs-keyword">return</span> ctx;
+}
+</code></pre>
+<p>这和javadoc中对这些方法的说明一致: &quot;这些方法会导致当前Channel的ChannelPipeline中包含的下一个ChannelInboundHandler的相应的方法被调用&quot;</p>
+<p>类似的方法有一下:</p>
+<pre><code class="lang-java"><span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelRegistered</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelUnregistered</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelActive</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelInactive</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireExceptionCaught</span><span class="hljs-params">(Throwable cause)</span></span>;        <span class="hljs-comment">// 这个例外!</span>
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireUserEventTriggered</span><span class="hljs-params">(Object event)</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelRead</span><span class="hljs-params">(Object msg)</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelReadComplete</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelHandlerContext <span class="hljs-title">fireChannelWritabilityChanged</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<p>但是fireExceptionCaught方法非常的特殊, 与众不同的是, 这个方法中的next是<strong>不区分inbound和outbound</strong>的, 直接取this.next:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelHandlerContext <span class="hljs-title">fireExceptionCaught</span><span class="hljs-params">(Throwable cause)</span> </span>{
+    AbstractChannelHandlerContext next = <span class="hljs-keyword">this</span>.next;
+    next.invoker().invokeExceptionCaught(next, cause);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+}
+</code></pre>
+<p>TODO: 暂时还没有理解为什么fireExceptionCaught()方法会有这个特例?</p>
+<h2 id="outboundio">outbound的I/O方法</h2>
+<p>首先, 下面这些方法在实现时都会转变为他们对应的带promise的版本:</p>
+<pre><code class="lang-java"><span class="hljs-function">ChannelFuture <span class="hljs-title">bind</span><span class="hljs-params">(SocketAddress localAddress)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">connect</span><span class="hljs-params">(SocketAddress remoteAddress)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">connect</span><span class="hljs-params">(SocketAddress remoteAddress, SocketAddress localAddress)</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">disconnect</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">close</span><span class="hljs-params">()</span></span>;
+<span class="hljs-function">ChannelFuture <span class="hljs-title">deregister</span><span class="hljs-params">()</span></span>;
+</code></pre>
+<p>例如bind()方法, 通过newPromise()方法创建一个promise之后, 就调用带promise的版本了:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelFuture <span class="hljs-title">bind</span><span class="hljs-params">(SocketAddress localAddress)</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">bind</span><span class="hljs-params">(localAddress, newPromise()</span>)</span>;
+}
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelPromise <span class="hljs-title">newPromise</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">DefaultChannelPromise</span><span class="hljs-params">(channel()</span>, <span class="hljs-title">executor</span><span class="hljs-params">()</span>)</span>;
+}
+</code></pre>
+<p>继续看bind()方法的实现, 发现机制和前面的雷同:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelFuture <span class="hljs-title">bind</span><span class="hljs-params">(<span class="hljs-keyword">final</span> SocketAddress localAddress, <span class="hljs-keyword">final</span> ChannelPromise promise)</span> </span>{
+    <span class="hljs-comment">// 找到下一个outbound的context</span>
+    AbstractChannelHandlerContext next = findContextOutbound();
+    <span class="hljs-comment">// 调用invokeBind()方法</span>
+    next.invoker().invokeBind(next, localAddress, promise);
+    <span class="hljs-keyword">return</span> promise;
+}
+</code></pre>
+<h2 id="io">I/O操作方法</h2>
+<p>实现方式类似, 不细看了.</p>
 
                     
                     </section>
@@ -915,10 +1114,10 @@
         </div>
 
         
-        <a href="../buffer/class_LeakAwareByteBuf.html" class="navigation navigation-prev " aria-label="Previous page: 类LeakAwareByteBuf"><i class="fa fa-angle-left"></i></a>
+        <a href="../channel/interface_ChannelHandlerContext.html" class="navigation navigation-prev " aria-label="Previous page: 接口ChannelHandlerContext"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/class_SlicedByteBuf.html" class="navigation navigation-next " aria-label="Next page: 类SlicedByteBuf"><i class="fa fa-angle-right"></i></a>
+        <a href="../channel/class_DefaultChannelHandlerContext.html" class="navigation navigation-next " aria-label="Next page: 类DefaultChannelHandlerContext"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
