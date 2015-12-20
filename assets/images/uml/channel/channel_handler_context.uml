@@ -1,0 +1,41 @@
+```uml
+@startuml
+
+AttributeMap <|-- ChannelHandlerContext
+ChannelHandlerContext <|-- AbstractChannelHandlerContext
+AbstractChannelHandlerContext <|-- DefaultChannelHandlerContext
+AbstractChannelHandlerContext <|-left- TailContext
+AbstractChannelHandlerContext <|-right- HeadContext
+
+interface AttributeMap {
+}
+
+interface ChannelHandlerContext {
+}
+
+abstract class AbstractChannelHandlerContext {
+- boolean inbound;
+- boolean outbound;
+- ChannelPipeline pipeline;
+- String name;
+- boolean removed;
+
+- AbstractChannelHandlerContext next;
+- AbstractChannelHandlerContext prev;
+}
+
+
+class DefaultChannelHandlerContext {
+- ChannelHandler handler
+}
+
+class TailContext {
+- ChannelHandler handler
+}
+
+class HeadContext {
+- ChannelHandler handler
+}
+
+@enduml
+```

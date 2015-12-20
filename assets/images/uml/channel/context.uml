@@ -1,0 +1,10 @@
+```uml
+@startuml
+
+ChannelPipeline <|- AbstractChannelHandlerContext
+AbstractChannelHandlerContext <|- DefaultChannelHandlerContext
+AbstractChannelHandlerContext <|- TailContext
+AbstractChannelHandlerContext <|- HeadContext
+
+@enduml
+```
