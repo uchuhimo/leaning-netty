@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>类SingleThreadEventLoop | Leaning Netty/Netty学习笔记</title>
+        <title>Channel Handler Context | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../eventloop/class_NioEventLoop.html" />
+    <link rel="next" href="../channel/interface_ChannelHandlerContext.html" />
     
     
-    <link rel="prev" href="../eventloop/class_SingleThreadEventExecutor.html" />
+    <link rel="prev" href="../channel/interface_Unsafe.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="2.3.5" data-basepath=".." data-revision="1450581375648">
+    <div class="book" data-level="3.3" data-basepath=".." data-revision="1450581375648">
     
 
 <div class="book-summary">
@@ -277,7 +277,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="2.3.5" data-path="eventloop/class_SingleThreadEventLoop.html">
+        <li class="chapter " data-level="2.3.5" data-path="eventloop/class_SingleThreadEventLoop.html">
             
                 
                     <a href="../eventloop/class_SingleThreadEventLoop.html">
@@ -390,7 +390,7 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3" data-path="channel/channel_handler_context.html">
+        <li class="chapter active" data-level="3.3" data-path="channel/channel_handler_context.html">
             
                 
                     <a href="../channel/channel_handler_context.html">
@@ -887,41 +887,89 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_33">
+                    <section class="normal" id="section-gitbook_24">
                     
-                        <p>SingleThreadEventLoop的类定义</p>
-<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SingleThreadEventLoop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SingleThreadEventExecutor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">EventLoop</span> </span>{}
+                        <h1 id="channel-handler-context">Channel Handler Context</h1>
+<h1 id="">功能</h1>
+<p>参考<a href="http://netty.io/4.1/api/io/netty/channel/ChannelHandlerContext.html" target="_blank">接口ChannelHandlerContext的javadoc</a>说明, 接口ChannelHandlerContext的作用:</p>
+<blockquote>
+<p>使得ChannelHandler可以和它的ChannelPipeline和其他handlers交互.
+  除此之外, handler可以通知ChannelPipeline中的下一个ChannelHandler, 此外还可以动态的修改它所属的ChannelPipeline</p>
+</blockquote>
+<p>具体功能如下(下面翻译自javadoc):</p>
+<ol>
+<li><p>通知</p>
+<p> 可以通过调用这里提供的多个方法中的某一个方法来通知在同一个ChannelPipeline的最近的handler. 参考ChannelPipeline来理解事件是如何流动的.</p>
+</li>
+<li><p>修改pipeline</p>
+<p> 可以通过调用pipeline()方法来得到handler所属的ChannelPipeline. 有一定分量的(non-trivial)应用能在pipeline中动态的插入, 删除, 或者替换handler.</p>
+</li>
+<li><p>保存以便后续可以取回使用</p>
+<p> 可以保存ChannelHandlerContext以便后续使用, 例如在handler方法外触发一个事件, 甚至可以从不同的线程发起.</p>
+<pre><code class="lang-java"> <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelHandlerAdapter</span> </span>{
+
+     <span class="hljs-keyword">private</span> ChannelHandlerContext ctx;
+
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">beforeAdd</span><span class="hljs-params">(ChannelHandlerContext ctx)</span> </span>{
+      <span class="hljs-keyword">this</span>.ctx = ctx;
+     }
+
+     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">login</span><span class="hljs-params">(String username, password)</span> </span>{
+      ctx.write(<span class="hljs-keyword">new</span> LoginMessage(username, password));
+     }
+     ...
+ }
 </code></pre>
-<h1 id="register">register()方法</h1>
-<p>register()方法最终调用到unsafe做register.</p>
-<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelFuture <span class="hljs-title">register</span><span class="hljs-params">(Channel channel)</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">register</span><span class="hljs-params">(channel, <span class="hljs-keyword">new</span> DefaultChannelPromise(channel, <span class="hljs-keyword">this</span>)</span>)</span>;
+</li>
+<li><p>存储状态化信息</p>
+<p> AttributeMap.attr(AttributeKey) 容许你保存和访问和handler以及它的上下文相关的状态化信息. 参考ChannelHandler来学习多种推荐用于管理状态化信息的方法.</p>
+</li>
+</ol>
+<p>有一个非常重要的信息, 有些出乎意外, 需要特别注意和留神:</p>
+<blockquote>
+<p><strong>一个hanlder可以多个context</strong></p>
+</blockquote>
+<p>请注意, 一个ChannelHandler实例可以被添加到多个ChannelPipeline. 这意味着一个单独的ChannelHandler实例可以有多个ChannelHandlerContext, 因此一个单独的ChannelHandler实例可以在被调用时传入不同的ChannelHandlerContext, 如果它被添加到多个ChannelPipeline.</p>
+<p>例如, 下面的handler被加入到pipelines多少次, 就会有多少个相互独立的AttributeKey. 不管它是多次添加到同一个pipeline还是不同的pipeline.</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FactorialHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelHandlerAdapter</span> </span>{
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> AttributeKey&lt;Integer&gt; counter = AttributeKey.valueOf(<span class="hljs-string">"counter"</span>);
+
+    <span class="hljs-comment">// This handler will receive a sequence of increasing integers starting</span>
+    <span class="hljs-comment">// from 1.</span>
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRead</span><span class="hljs-params">(ChannelHandlerContext ctx, Object msg)</span> </span>{
+        Attribute&lt;Integer&gt; attr = ctx.getAttr(counter);
+        Integer a = ctx.getAttr(counter).get();
+
+        <span class="hljs-keyword">if</span> (a == <span class="hljs-keyword">null</span>) {
+            a = <span class="hljs-number">1</span>;
+        }
+
+        attr.set(a * (Integer) msg);
+    }
 }
 
-<span class="hljs-annotation">@Override</span>
-<span class="hljs-function"><span class="hljs-keyword">public</span> ChannelFuture <span class="hljs-title">register</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Channel channel, <span class="hljs-keyword">final</span> ChannelPromise promise)</span> </span>{
-    <span class="hljs-keyword">if</span> (channel == <span class="hljs-keyword">null</span>) {
-        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"channel"</span>);
-    }
-    <span class="hljs-keyword">if</span> (promise == <span class="hljs-keyword">null</span>) {
-        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"promise"</span>);
-    }
+<span class="hljs-comment">// 不同的context对象被赋予"f1", "f2", "f3", 和 "f4", 虽然他们引用到同一个handler实例.</span>
+<span class="hljs-comment">// 由于FactorialHandler在context对象中保存它的状态(使用AttributeKey),</span>
+<span class="hljs-comment">// 一旦这两个pipelines (p1 和 p2)被激活, factorial会计算4次.</span>
+FactorialHandler fh = <span class="hljs-keyword">new</span> FactorialHandler();
 
-    channel.unsafe().register(<span class="hljs-keyword">this</span>, promise);
-    <span class="hljs-keyword">return</span> promise;
-}
-</code></pre>
-<h1 id="nonwakeuprunnable">标志接口NonWakeupRunnable</h1>
-<p>在SingleThreadEventLoop中,增加了一个标志接口NonWakeupRunnable, 然后wakesUpForTask()被覆盖为检测是否task是否是NonWakeupRunnable.</p>
-<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SingleThreadEventLoop</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SingleThreadEventExecutor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">EventLoop</span> </span>{
-    <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">wakesUpForTask</span><span class="hljs-params">(Runnable task)</span> </span>{
-        <span class="hljs-keyword">return</span> !(task <span class="hljs-keyword">instanceof</span> NonWakeupRunnable);
-    }
+ChannelPipeline p1 = Channels.pipeline();
+p1.addLast(<span class="hljs-string">"f1"</span>, fh);
+p1.addLast(<span class="hljs-string">"f2"</span>, fh);
 
-    <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">NonWakeupRunnable</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Runnable</span> </span>{}
-}
+ChannelPipeline p2 = Channels.pipeline();
+p2.addLast(<span class="hljs-string">"f3"</span>, fh);
+p2.addLast(<span class="hljs-string">"f4"</span>, fh);
 </code></pre>
+<p>备注: 这个的代码和例子来自javadoc,但是有点问题, ctx.getAttr()应该是ctx.attr(). 已经<a href="https://github.com/netty/netty/pull/4590" target="_blank">pull了一个request给netty</a>.
+更新: 修改已经被netty接受, netty4.1版本会包含这个修订.</p>
+<p>总结: 也就是说, 在handler被添加到pipiline时, 会创建一个新的context, 无视handler是否是一个实例添加多次.</p>
+<h1 id="">类继承结构</h1>
+<p>ChannelHandlerContext继承关系简单, 就一个ChannelHandlerContext接口, 一个AbstractChannelHandlerContext抽象类, 和一个默认实现DefaultChannelHandlerContext.</p>
+<p>另外在DefaultChannelPipeline中内嵌有两个特殊的实现类TailContext和HeadContext.</p>
+<p><img src="../assets/images/uml/channel/channel_handler_context.png" alt=""></p>
 
                     
                     </section>
@@ -932,10 +980,10 @@
         </div>
 
         
-        <a href="../eventloop/class_SingleThreadEventExecutor.html" class="navigation navigation-prev " aria-label="Previous page: 类SingleThreadEventExecutor"><i class="fa fa-angle-left"></i></a>
+        <a href="../channel/interface_Unsafe.html" class="navigation navigation-prev " aria-label="Previous page: Channel Unsafe"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../eventloop/class_NioEventLoop.html" class="navigation navigation-next " aria-label="Next page: 类NioEventLoop"><i class="fa fa-angle-right"></i></a>
+        <a href="../channel/interface_ChannelHandlerContext.html" class="navigation navigation-next " aria-label="Next page: 接口ChannelHandlerContext"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

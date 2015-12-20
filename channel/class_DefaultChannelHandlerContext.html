@@ -19,7 +19,7 @@
         
     
     
-    <link rel="next" href="../channel/class_DefaultChannelPipeline.html" />
+    <link rel="next" href="../channel/channel_pipeline.html" />
     
     
     <link rel="prev" href="../channel/class_AbstractChannelHandlerContext.html" />
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="3.3.2.2" data-basepath=".." data-revision="1450537798230">
+    <div class="book" data-level="3.3.3" data-basepath=".." data-revision="1450581375648">
     
 
 <div class="book-summary">
@@ -390,15 +390,15 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3" data-path="channel/channel_pipeline.html">
+        <li class="chapter " data-level="3.3" data-path="channel/channel_handler_context.html">
             
                 
-                    <a href="../channel/channel_pipeline.html">
+                    <a href="../channel/channel_handler_context.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.3.</b>
                         
-                         Channel Pipeline
+                         Channel Handler Context
                     </a>
                 
             
@@ -407,15 +407,15 @@
                 
     
         
-        <li class="chapter " data-level="3.3.1" data-path="channel/interface_ChannelPipeline.html">
+        <li class="chapter " data-level="3.3.1" data-path="channel/interface_ChannelHandlerContext.html">
             
                 
-                    <a href="../channel/interface_ChannelPipeline.html">
+                    <a href="../channel/interface_ChannelHandlerContext.html">
                         <i class="fa fa-check"></i>
                         
                             <b>3.3.1.</b>
                         
-                         接口ChannelPipeline
+                         接口ChannelHandlerContext
                     </a>
                 
             
@@ -423,30 +423,13 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3.2" data-path="channel/interface_ChannelHandlerContext.html">
-            
-                
-                    <a href="../channel/interface_ChannelHandlerContext.html">
-                        <i class="fa fa-check"></i>
-                        
-                            <b>3.3.2.</b>
-                        
-                         接口ChannelHandlerContext
-                    </a>
-                
-            
-            
-            <ul class="articles">
-                
-    
-        
-        <li class="chapter " data-level="3.3.2.1" data-path="channel/class_AbstractChannelHandlerContext.html">
+        <li class="chapter " data-level="3.3.2" data-path="channel/class_AbstractChannelHandlerContext.html">
             
                 
                     <a href="../channel/class_AbstractChannelHandlerContext.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.3.2.1.</b>
+                            <b>3.3.2.</b>
                         
                          类AbstractChannelHandlerContext
                     </a>
@@ -456,13 +439,13 @@
         </li>
     
         
-        <li class="chapter active" data-level="3.3.2.2" data-path="channel/class_DefaultChannelHandlerContext.html">
+        <li class="chapter active" data-level="3.3.3" data-path="channel/class_DefaultChannelHandlerContext.html">
             
                 
                     <a href="../channel/class_DefaultChannelHandlerContext.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.3.2.2.</b>
+                            <b>3.3.3.</b>
                         
                          类DefaultChannelHandlerContext
                     </a>
@@ -477,13 +460,46 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3.3" data-path="channel/class_DefaultChannelPipeline.html">
+        <li class="chapter " data-level="3.4" data-path="channel/channel_pipeline.html">
+            
+                
+                    <a href="../channel/channel_pipeline.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.</b>
+                        
+                         Channel Pipeline
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="3.4.1" data-path="channel/interface_ChannelPipeline.html">
+            
+                
+                    <a href="../channel/interface_ChannelPipeline.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>3.4.1.</b>
+                        
+                         接口ChannelPipeline
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="3.4.2" data-path="channel/class_DefaultChannelPipeline.html">
             
                 
                     <a href="../channel/class_DefaultChannelPipeline.html">
                         <i class="fa fa-check"></i>
                         
-                            <b>3.3.3.</b>
+                            <b>3.4.2.</b>
                         
                          类DefaultChannelPipeline
                     </a>
@@ -871,9 +887,70 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_22">
+                    <section class="normal" id="section-gitbook_23">
                     
                         <h1 id="defaultchannelhandlercontext">类DefaultChannelHandlerContext</h1>
+<p>ChannelHandlerContext的实现类有三个:</p>
+<ol>
+<li>DefaultChannelHandlerContext</li>
+<li>HeadContext (内嵌在DefaultChannelPipeline中)</li>
+<li>TailContext (内嵌在DefaultChannelPipeline中)</li>
+</ol>
+<h1 id="defaultchannelhandlercontext">类DefaultChannelHandlerContext</h1>
+<p>DefaultChannelHandlerContext的代码特别的少, 基本上除了保存一个handler属性和getter方法, 就没有其他内容了:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultChannelHandlerContext</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractChannelHandlerContext</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ChannelHandler handler;
+
+    DefaultChannelHandlerContext(ChannelPipeline pipeline, ChannelHandlerInvoker invoker, String name, ChannelHandler handler) {
+        <span class="hljs-keyword">super</span>(pipeline, invoker, name, isInbound(handler), isOutbound(handler));
+        <span class="hljs-keyword">if</span> (handler == <span class="hljs-keyword">null</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException(<span class="hljs-string">"handler"</span>);
+        }
+        <span class="hljs-keyword">this</span>.handler = handler;
+    }
+
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> ChannelHandler <span class="hljs-title">handler</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> handler;
+    }
+}
+</code></pre>
+<p>比较奇怪的是, 为什么handler要放在DefaultChannelHandlerContext中, 而不是AbstractChannelHandlerContext?</p>
+<h1 id="tailcontext">TailContext</h1>
+<p>TailContext和HeadContext有些奇怪, 他们既是ChannelHandlerContext, 又实现了ChannelHandler接口.</p>
+<p>TailContext是ChannelInboundHandler:</p>
+<pre><code class="lang-java"><span class="hljs-comment">// A special catch-all handler that handles both bytes and messages.</span>
+<span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TailContext</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractChannelHandlerContext</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelInboundHandler</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String TAIL_NAME = generateName0(TailContext.class);
+
+    TailContext(DefaultChannelPipeline pipeline) {
+        <span class="hljs-comment">// invoker特意设置为null</span>
+        <span class="hljs-comment">// inbound=true, outbound=false</span>
+        <span class="hljs-keyword">super</span>(pipeline, <span class="hljs-keyword">null</span>, TAIL_NAME, <span class="hljs-keyword">true</span>, <span class="hljs-keyword">false</span>);
+    }
+
+    <span class="hljs-annotation">@Override</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> ChannelHandler <span class="hljs-title">handler</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+    }
+}
+</code></pre>
+<h1 id="headcontext">HeadContext</h1>
+<p>HeadContext是ChannelOutboundHandler:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HeadContext</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractChannelHandlerContext</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelOutboundHandler</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String HEAD_NAME = generateName0(HeadContext.class);
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Unsafe unsafe;
+
+    HeadContext(DefaultChannelPipeline pipeline) {
+        <span class="hljs-comment">// invoker特意设置为null</span>
+        <span class="hljs-comment">// inbound=false, outbound=true</span>
+        <span class="hljs-keyword">super</span>(pipeline, <span class="hljs-keyword">null</span>, HEAD_NAME, <span class="hljs-keyword">false</span>, <span class="hljs-keyword">true</span>);
+        unsafe = pipeline.channel().unsafe();
+    }
+}
+</code></pre>
+<p>注: 从代码实现上看, TailContext和HeadContext在DefaultChannelPipeline中扮演特殊角色, 还是和DefaultChannelPipeline的代码一起看比较好.</p>
 
                     
                     </section>
@@ -887,7 +964,7 @@
         <a href="../channel/class_AbstractChannelHandlerContext.html" class="navigation navigation-prev " aria-label="Previous page: 类AbstractChannelHandlerContext"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../channel/class_DefaultChannelPipeline.html" class="navigation navigation-next " aria-label="Next page: 类DefaultChannelPipeline"><i class="fa fa-angle-right"></i></a>
+        <a href="../channel/channel_pipeline.html" class="navigation navigation-next " aria-label="Next page: Channel Pipeline"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
