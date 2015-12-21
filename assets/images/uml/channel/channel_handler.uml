@@ -1,0 +1,67 @@
+```uml
+@startuml
+
+ChannelHandler <|-left- ChannelInboundHandler
+ChannelHandler <|-right- ChannelOutboundHandler
+
+ChannelHandler <|-- ChannelHandlerAdapter
+
+ChannelInboundHandler <|-- ChannelInboundHandlerAdapter
+ChannelHandlerAdapter <|-- ChannelInboundHandlerAdapter
+
+ChannelOutboundHandler <|-- ChannelOutboundHandlerAdapter
+ChannelHandlerAdapter <|-- ChannelOutboundHandlerAdapter
+
+ChannelInboundHandlerAdapter <|-- ChannelDuplexHandler
+ChannelOutboundHandler <|-- ChannelDuplexHandler
+
+ChannelInboundHandlerAdapter <|-- ChannelInitializer
+
+interface ChannelHandler {
++ handlerAdded(ctx)
++ handlerRemoved(ctx)
++ @interface Sharable
+}
+
+interface ChannelInboundHandler {
++ void channelRegistered(ctx)
++ void channelUnregistered(ctx)
++ void channelActive(ctx)
++ void channelInactive(ctx)
++ void channelRead(ctx, Object msg)
++ void channelReadComplete(ctx)
++ void userEventTriggered(ctx, evt)
++ void channelWritabilityChanged(ctx)
++ void exceptionCaught(ctx, cause)
+}
+
+interface ChannelOutboundHandler {
++ void bind(ctx, localAddress, promise)
++ void connect(ctx, remoteAddress, localAddress, promise)
++ void disconnect(ctx, promise)
++ void close(ctx, promise)
++ void deregister(ctx, promise)
++ void read(ctx)
++ void write(ctx, msg, promise)
++ void flush(ctx)
+}
+
+abstract class ChannelHandlerAdapter {
+~ boolean added
+}
+
+class ChannelInboundHandlerAdapter {
+}
+
+class ChannelOutboundHandlerAdapter {
+}
+
+class ChannelDuplexHandler {
+}
+
+abstract ChannelInitializer {
+# {abstract} void initChannel(ch)
+}
+
+@enduml
+```
