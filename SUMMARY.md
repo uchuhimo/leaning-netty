@@ -17,6 +17,8 @@ bui# Summary
 	* [接口Channel](channel/interface_Channel.md)
 		* [类AbstractChannel](channel/class_AbstractChannel.md)
 	* [Channel Unsafe](channel/interface_Unsafe.md)
+	* [Channel Handler](channel/channel_handler.md)
+		* [ChannelHandler相关接口](channel/interface_ChannelHandler.md)
 	* [Channel Handler Context](channel/channel_handler_context.md)
         * [接口ChannelHandlerContext](channel/interface_ChannelHandlerContext.md)
         * 	[类AbstractChannelHandlerContext](channel/class_AbstractChannelHandlerContext.md)
