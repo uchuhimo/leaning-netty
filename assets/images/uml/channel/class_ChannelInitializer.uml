@@ -1,0 +1,32 @@
+```uml
+@startuml
+
+bootstrap -> bootstrap: add MyChannelInitializer to handler
+note left: step1
+
+-> bootstrap: start
+
+bootstrap -> bootstrap : create Channel
+bootstrap -> bootstrap : register MyChannelInitializer to pipeline
+bootstrap ->  bootstrap: fire channelRegistered
+note left: step2
+ChannelInitializer -> ChannelInitializer : channelRegistered() triggered
+
+group channelRegistered()
+ChannelInitializer -> MyChannelInitializer : initChannel()
+note left: step3
+group initChannel()
+MyChannelInitializer -> MyChannelInitializer : add MyHandler to pipeline
+note left: step4
+end
+MyChannelInitializer -->  ChannelInitializer
+
+ChannelInitializer -> ChannelInitializer : remove MyChannelInitializer from pipeline
+note left: step5
+ChannelInitializer -> ChannelInitializer : fire channelRegistered
+note left: step6
+end
+
+MyHandler -> MyHandler: channelRegistered() triggered
+@enduml
+```
