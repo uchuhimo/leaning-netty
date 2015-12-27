@@ -1,0 +1,21 @@
+```uml
+@startuml
+
+ChannelInboundHandlerAdapter <|-- ChannelHandlerAppender
+
+ChannelHandlerAppender <|-- HttpServerCodec
+ChannelHandlerAppender <|-- HttpClientCodec
+ChannelHandlerAppender <|-- SpdyHttpCodec
+ChannelHandlerAppender <|-- BinaryMemcacheServerCodec
+ChannelHandlerAppender <|-- BinaryMemcacheClientCodec
+
+class ChannelHandlerAppender {
+- boolean selfRemoval
+- List<Entry> handlers
+- boolean added
+
++ add(handler)
+}
+
+@enduml
+```

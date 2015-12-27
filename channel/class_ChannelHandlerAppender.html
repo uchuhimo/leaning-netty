@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>类LeakAwareByteBuf | Leaning Netty/Netty学习笔记</title>
+        <title>类ChannelHandlerAppender | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/zero_copy.html" />
+    <link rel="next" href="../channel/channel_handler_context.html" />
     
     
-    <link rel="prev" href="../buffer/class_ResourceLeakDetector.html" />
+    <link rel="prev" href="../channel/class_ChannelInitializer.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="4.2.2.7" data-basepath=".." data-revision="1451189749130">
+    <div class="book" data-level="3.3.4" data-basepath=".." data-revision="1451189749130">
     
 
 <div class="book-summary">
@@ -455,7 +455,7 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3.4" data-path="channel/class_ChannelHandlerAppender.html">
+        <li class="chapter active" data-level="3.3.4" data-path="channel/class_ChannelHandlerAppender.html">
             
                 
                     <a href="../channel/class_ChannelHandlerAppender.html">
@@ -784,7 +784,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="4.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
+        <li class="chapter " data-level="4.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
             
                 
                     <a href="../buffer/class_LeakAwareByteBuf.html">
@@ -973,81 +973,89 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_5">
+                    <section class="normal" id="section-gitbook_25">
                     
-                        <p>netty中为了方便监控ByteBuf的泄露, 实现了两个LeakAwareByteBuf:</p>
-<ul>
-<li>AdvancedLeakAwareByteBuf</li>
-<li>SimpleLeakAwareByteBuf</li>
-</ul>
-<h1 id="">调用方式</h1>
-<p>AdvancedLeakAwareByteBuf和SimpleLeakAwareByteBuf和resource leak detect相关,在方法 AbstractByteBufAllocator.toLeakAwareBuffer()中被调用,分别对应resource leak detect的不同级别: </p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">toLeakAwareBuffer</span><span class="hljs-params">(ByteBuf buf)</span> </span>{
-    ResourceLeak leak;
-    <span class="hljs-keyword">switch</span> (ResourceLeakDetector.getLevel()) {
-        <span class="hljs-keyword">case</span> SIMPLE:
-            leak = AbstractByteBuf.leakDetector.open(buf);
-            <span class="hljs-keyword">if</span> (leak != <span class="hljs-keyword">null</span>) {
-                buf = <span class="hljs-keyword">new</span> SimpleLeakAwareByteBuf(buf, leak);
-            }
-            <span class="hljs-keyword">break</span>;
-        <span class="hljs-keyword">case</span> ADVANCED:
-        <span class="hljs-keyword">case</span> PARANOID:
-            leak = AbstractByteBuf.leakDetector.open(buf);
-            <span class="hljs-keyword">if</span> (leak != <span class="hljs-keyword">null</span>) {
-                buf = <span class="hljs-keyword">new</span> AdvancedLeakAwareByteBuf(buf, leak);
-            }
-            <span class="hljs-keyword">break</span>;
-        <span class="hljs-keyword">default</span>:
-            <span class="hljs-keyword">break</span>;
+                        <h1 id="channelhandlerappender">类ChannelHandlerAppender</h1>
+<h1 id="">类的功能</h1>
+<p>类ChannelHandlerAppender是一个特殊的ChannelHandler, 如名字中的Appender所示, 这是一个包含多个特定  ChannelHandler 的Appender. 而且这些ChannelHandler会在ChannelHandlerAppender的右边(在pipiline中的位置).</p>
+<p>默认情况下, 一旦这些特定的ChannelHandler被添加, 它会从ChannelPipeline中将自身删除. 当然, 也可以通过在构造函数中设置参数selfRemoval为false来保留它.</p>
+<h1 id="">类的定义</h1>
+<p>类ChannelHandlerAppender的定义, 简单继承自ChannelInboundHandlerAdapter:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ChannelHandlerAppender</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelInboundHandlerAdapter</span> </span>{}
+</code></pre>
+<p>ChannelHandlerAppender的子类实现有一下, 基本都是给codec用的, 具体继承结构如图:</p>
+<p><img src="../assets/images/uml/channel/class_ChannelHandlerAppender.png" alt=""></p>
+<h1 id="">类的实现</h1>
+<h2 id="">属性</h2>
+<p>ChannelHandlerAppender有三个属性:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> selfRemoval;
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> List&lt;Entry&gt; handlers = <span class="hljs-keyword">new</span> ArrayList&lt;Entry&gt;();
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> added;
+</code></pre>
+<ol>
+<li>selfRemoval: 标记在将append的各个handler添加到pipeline之后, 是否要将自身删除, 默认行为是true/删除, 可以在构造函数中设置</li>
+<li>handlers: 这个就是内部保存的要append的各个handler了, 可以通过add()方法添加</li>
+<li><p>added: 标记append的各个handler是否已经被添加到pipeline中了</p>
+<p> 上面的add()方法中, 会检查added属性, 如果已经添加了则抛异常.</p>
+</li>
+</ol>
+<p>相关的代码示意:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ChannelHandlerAppender</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> selfRemoval, ChannelHandler... handlers)</span> </span>{
+    <span class="hljs-keyword">this</span>.selfRemoval = selfRemoval;    <span class="hljs-comment">// 构造函数中指定</span>
+    add(handlers);
+}
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> ChannelHandlerAppender <span class="hljs-title">add</span><span class="hljs-params">(String name, ChannelHandler handler)</span> </span>{
+    <span class="hljs-keyword">if</span> (added) {    <span class="hljs-comment">// 检查added属性</span>
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">"added to the pipeline already"</span>);
     }
-    <span class="hljs-keyword">return</span> buf;
+
+    handlers.add(<span class="hljs-keyword">new</span> Entry(name, handler));
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
 }
-</code></pre>
-<p>toLeakAwareBuffer()方法在以下几个地方被调用,都是用来将普通ByteBuf包装为LeakAwareBuffer.</p>
-<ul>
-<li>PooledByteBufAllocator.newDirectBuffer()</li>
-<li>PooledByteBufAllocator.newHeapBuffer()</li>
-<li>UnpooledByteBufAllocator.newDirectBuffer()</li>
-</ul>
-<p>代码类似如下:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> ByteBuf <span class="hljs-title">newDirectBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity, <span class="hljs-keyword">int</span> maxCapacity)</span> </span>{
-    <span class="hljs-comment">// 创建目标ByteBuf</span>
-    ByteBuf buf = ......;
-    <span class="hljs-comment">// 包装为LeakAwareBuffer</span>
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">toLeakAwareBuffer</span><span class="hljs-params">(buf)</span></span>;
-}
-</code></pre>
-<p>总结: <strong>在使用ByteBufAllocator分配ByteBuf时,netty会根据当前的resource detect level的设置使用对应的AdvancedLeakAwareByteBuf或SimpleLeakAwareByteBuf包装真实的ByteBuf</strong></p>
-<h1 id="">代码实现</h1>
-<h2 id="advancedleakawarebytebuf">AdvancedLeakAwareByteBuf</h2>
-<p>构造函数中传入需要包装的ByteBuf和ResourceLeak对象:</p>
-<pre><code class="lang-java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AdvancedLeakAwareByteBuf</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WrappedByteBuf</span> </span>{
-    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ResourceLeak leak;
-    AdvancedLeakAwareByteBuf(ByteBuf buf, ResourceLeak leak) {
-        <span class="hljs-keyword">super</span>(buf);
-        <span class="hljs-keyword">this</span>.leak = leak;
+
+<span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handlerAdded</span><span class="hljs-params">(ChannelHandlerContext ctx)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    added = <span class="hljs-keyword">true</span>;    <span class="hljs-comment">//设置added为true</span>
+
+    DefaultChannelPipeline pipeline = (DefaultChannelPipeline) dctx.pipeline();
+    <span class="hljs-keyword">try</span> {
+
+    } <span class="hljs-keyword">finally</span> {
+        <span class="hljs-keyword">if</span> (selfRemoval) {    <span class="hljs-comment">// 检查selfRemoval属性看是否要删除自身</span>
+            pipeline.remove(<span class="hljs-keyword">this</span>);
+        }
     }
-    ......
 }
 </code></pre>
-<p>然后几乎所有的方法,都在delegate之前多加一句对leak.record()的调用:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getDouble</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> </span>{
-    leak.record();
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">super</span>.getDouble(index);
+<h2 id="addpend">addpend的代码实现</h2>
+<p>handlerAdded()方法中是这个类真正的逻辑实现:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handlerAdded</span><span class="hljs-params">(ChannelHandlerContext ctx)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    added = <span class="hljs-keyword">true</span>;
+
+    AbstractChannelHandlerContext dctx = (AbstractChannelHandlerContext) ctx;
+    DefaultChannelPipeline pipeline = (DefaultChannelPipeline) dctx.pipeline();
+    String name = dctx.name();
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-keyword">for</span> (Entry e: handlers) { <span class="hljs-comment">// 循环处理每个append的handler</span>
+            String oldName = name; <span class="hljs-comment">// 第一个oldname是dctx.name(), 也就是ChannelHandlerAppender的name, 以后oldname是上一次的name</span>
+            <span class="hljs-keyword">if</span> (e.name == <span class="hljs-keyword">null</span>) {
+                name = pipeline.generateName(e.handler);
+            } <span class="hljs-keyword">else</span> {
+                name = e.name;
+            }
+
+            <span class="hljs-comment">// 添加这个handler到上一个hanler(由oldName指定)之后</span>
+            pipeline.addAfter(dctx.invoker, oldName, name, e.handler);
+        }
+    } <span class="hljs-keyword">finally</span> {
+        <span class="hljs-keyword">if</span> (selfRemoval) { <span class="hljs-comment">// 检查是否要删除自身</span>
+            pipeline.remove(<span class="hljs-keyword">this</span>);
+        }
+    }
 }
 </code></pre>
-<p>然后所有的slice()/duplicate()/readSlice()/order()方法都在返回新的ByteBuf前再次包装成AdvancedLeakAwareByteBuf:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">slice</span><span class="hljs-params">()</span> </span>{
-    leak.record();
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">AdvancedLeakAwareByteBuf</span><span class="hljs-params">(<span class="hljs-keyword">super</span>.slice()</span>, leak)</span>;
-}
-</code></pre>
-<h2 id="simpleleakawarebytebuf">SimpleLeakAwareByteBuf</h2>
-<p>实现方式基本和AdvancedLeakAwareByteBuf相似,但是只有一个方法添加了对leak.record()的调用:</p>
-<ul>
-<li>order(ByteOrder endianness)</li>
-</ul>
+<p>备注: 这个类的具体功能, 在后面细读codec实现时再结合使用场景一起看.</p>
 
                     
                     </section>
@@ -1058,10 +1066,10 @@
         </div>
 
         
-        <a href="../buffer/class_ResourceLeakDetector.html" class="navigation navigation-prev " aria-label="Previous page: 类ResourceLeakDetector"><i class="fa fa-angle-left"></i></a>
+        <a href="../channel/class_ChannelInitializer.html" class="navigation navigation-prev " aria-label="Previous page: 类ChannelInitializer"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/zero_copy.html" class="navigation navigation-next " aria-label="Next page: Zero Copy"><i class="fa fa-angle-right"></i></a>
+        <a href="../channel/channel_handler_context.html" class="navigation navigation-next " aria-label="Next page: Channel Handler Context"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>

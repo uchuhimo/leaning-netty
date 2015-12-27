@@ -5,7 +5,7 @@
         <!-- head:start -->
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=11; IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
-        <title>类LeakAwareByteBuf | Leaning Netty/Netty学习笔记</title>
+        <title>ChannelHandlerAdapter相关类 | Leaning Netty/Netty学习笔记</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="generator" content="GitBook 1.5.0">
@@ -19,10 +19,10 @@
         
     
     
-    <link rel="next" href="../buffer/zero_copy.html" />
+    <link rel="next" href="../channel/class_ChannelInitializer.html" />
     
     
-    <link rel="prev" href="../buffer/class_ResourceLeakDetector.html" />
+    <link rel="prev" href="../channel/interface_ChannelHandler.html" />
     
 
         <!-- head:end -->
@@ -38,7 +38,7 @@
 
 
         
-    <div class="book" data-level="4.2.2.7" data-basepath=".." data-revision="1451189749130">
+    <div class="book" data-level="3.3.2" data-basepath=".." data-revision="1451189749130">
     
 
 <div class="book-summary">
@@ -423,7 +423,7 @@
         </li>
     
         
-        <li class="chapter " data-level="3.3.2" data-path="channel/class_ChannelHandlerAdapter.html">
+        <li class="chapter active" data-level="3.3.2" data-path="channel/class_ChannelHandlerAdapter.html">
             
                 
                     <a href="../channel/class_ChannelHandlerAdapter.html">
@@ -784,7 +784,7 @@
         </li>
     
         
-        <li class="chapter active" data-level="4.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
+        <li class="chapter " data-level="4.2.2.7" data-path="buffer/class_LeakAwareByteBuf.html">
             
                 
                     <a href="../buffer/class_LeakAwareByteBuf.html">
@@ -973,81 +973,73 @@
                 <div class="page-inner">
                 
                 
-                    <section class="normal" id="section-gitbook_5">
+                    <section class="normal" id="section-gitbook_24">
                     
-                        <p>netty中为了方便监控ByteBuf的泄露, 实现了两个LeakAwareByteBuf:</p>
-<ul>
-<li>AdvancedLeakAwareByteBuf</li>
-<li>SimpleLeakAwareByteBuf</li>
-</ul>
-<h1 id="">调用方式</h1>
-<p>AdvancedLeakAwareByteBuf和SimpleLeakAwareByteBuf和resource leak detect相关,在方法 AbstractByteBufAllocator.toLeakAwareBuffer()中被调用,分别对应resource leak detect的不同级别: </p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">static</span> ByteBuf <span class="hljs-title">toLeakAwareBuffer</span><span class="hljs-params">(ByteBuf buf)</span> </span>{
-    ResourceLeak leak;
-    <span class="hljs-keyword">switch</span> (ResourceLeakDetector.getLevel()) {
-        <span class="hljs-keyword">case</span> SIMPLE:
-            leak = AbstractByteBuf.leakDetector.open(buf);
-            <span class="hljs-keyword">if</span> (leak != <span class="hljs-keyword">null</span>) {
-                buf = <span class="hljs-keyword">new</span> SimpleLeakAwareByteBuf(buf, leak);
-            }
-            <span class="hljs-keyword">break</span>;
-        <span class="hljs-keyword">case</span> ADVANCED:
-        <span class="hljs-keyword">case</span> PARANOID:
-            leak = AbstractByteBuf.leakDetector.open(buf);
-            <span class="hljs-keyword">if</span> (leak != <span class="hljs-keyword">null</span>) {
-                buf = <span class="hljs-keyword">new</span> AdvancedLeakAwareByteBuf(buf, leak);
-            }
-            <span class="hljs-keyword">break</span>;
-        <span class="hljs-keyword">default</span>:
-            <span class="hljs-keyword">break</span>;
+                        <h1 id="channelhandleradapter">ChannelHandlerAdapter相关类</h1>
+<p>为了方便使用, netty提供了几个adapter类, 这些adapter类实现ChannelHandler接口并提供了一些平庸(空)实现, 这样子类可以方便的只覆盖自己关心的方法.</p>
+<p>类继承结构如下:</p>
+<p><img src="../assets/images/uml/channel/channel_handler.png" alt=""></p>
+<h1 id="channelhandleradapter">类ChannelHandlerAdapter</h1>
+<p>类定义, ChannelHandlerAdapter实现了ChannelHandler接口:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ChannelHandlerAdapter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelHandler</span> </span>{}
+</code></pre>
+<p>handlerAdded()和handlerRemoved()方法都给了一个空实现:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handlerAdded</span><span class="hljs-params">(ChannelHandlerContext ctx)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    <span class="hljs-comment">// NOOP</span>
+}
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handlerRemoved</span><span class="hljs-params">(ChannelHandlerContext ctx)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    <span class="hljs-comment">// NOOP</span>
+}
+</code></pre>
+<p>exceptionCaught()方法被delegate给ChannelHandlerContext了:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">exceptionCaught</span><span class="hljs-params">(ChannelHandlerContext ctx, Throwable cause)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    ctx.fireExceptionCaught(cause);
+}
+</code></pre>
+<p>此外提供了isSharable()方法来判断当前hanlder是否是可共享(在多个pipeline中,见前文):</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isSharable</span><span class="hljs-params">()</span> </span>{
+    Class&lt;?&gt; clazz = getClass();
+    Map&lt;Class&lt;?&gt;, Boolean&gt; cache = InternalThreadLocalMap.get().handlerSharableCache();
+    Boolean sharable = cache.get(clazz);
+    <span class="hljs-keyword">if</span> (sharable == <span class="hljs-keyword">null</span>) {
+        sharable = clazz.isAnnotationPresent(Sharable.class);
+        cache.put(clazz, sharable);
     }
-    <span class="hljs-keyword">return</span> buf;
+    <span class="hljs-keyword">return</span> sharable;
 }
 </code></pre>
-<p>toLeakAwareBuffer()方法在以下几个地方被调用,都是用来将普通ByteBuf包装为LeakAwareBuffer.</p>
-<ul>
-<li>PooledByteBufAllocator.newDirectBuffer()</li>
-<li>PooledByteBufAllocator.newHeapBuffer()</li>
-<li>UnpooledByteBufAllocator.newDirectBuffer()</li>
-</ul>
-<p>代码类似如下:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">protected</span> ByteBuf <span class="hljs-title">newDirectBuffer</span><span class="hljs-params">(<span class="hljs-keyword">int</span> initialCapacity, <span class="hljs-keyword">int</span> maxCapacity)</span> </span>{
-    <span class="hljs-comment">// 创建目标ByteBuf</span>
-    ByteBuf buf = ......;
-    <span class="hljs-comment">// 包装为LeakAwareBuffer</span>
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">toLeakAwareBuffer</span><span class="hljs-params">(buf)</span></span>;
+<p>实现时有一个cache用来保存结果.</p>
+<p>另外定义了一个added属性:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">boolean</span> added;
+</code></pre>
+<p>注: 类ChannelHandlerAdapter真没有什么内容, 主要是ChannelHandler接口也够简单.继续看.</p>
+<h1 id="channelinboundhandleradapter">类ChannelInboundHandlerAdapter</h1>
+<p>类ChannelInboundHandlerAdapter的定义如下, 继承自ChannelHandlerAdapter, 另外声明实现ChannelInboundHandler接口:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ChannelInboundHandlerAdapter</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelHandlerAdapter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelInboundHandler</span> </span>{}
+</code></pre>
+<p>类ChannelInboundHandlerAdapter实现了ChannelInboundHandler接口定义的各个inbound操作方法, 实现方式简单就一个话: <strong>统统delegate给ChannelHandlerContext!</strong> 以channelRegistered()方法为例:</p>
+<pre><code class="lang-java"><span class="hljs-annotation">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">channelRegistered</span><span class="hljs-params">(ChannelHandlerContext ctx)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    ctx.fireChannelRegistered();
 }
 </code></pre>
-<p>总结: <strong>在使用ByteBufAllocator分配ByteBuf时,netty会根据当前的resource detect level的设置使用对应的AdvancedLeakAwareByteBuf或SimpleLeakAwareByteBuf包装真实的ByteBuf</strong></p>
-<h1 id="">代码实现</h1>
-<h2 id="advancedleakawarebytebuf">AdvancedLeakAwareByteBuf</h2>
-<p>构造函数中传入需要包装的ByteBuf和ResourceLeak对象:</p>
-<pre><code class="lang-java"><span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AdvancedLeakAwareByteBuf</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WrappedByteBuf</span> </span>{
-    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ResourceLeak leak;
-    AdvancedLeakAwareByteBuf(ByteBuf buf, ResourceLeak leak) {
-        <span class="hljs-keyword">super</span>(buf);
-        <span class="hljs-keyword">this</span>.leak = leak;
-    }
-    ......
+<h1 id="channeloutboundhandleradapter">类ChannelOutboundHandlerAdapter</h1>
+<p>类ChannelOutboundHandlerAdapter也是类似, 类定义如下:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ChannelOutboundHandlerAdapter</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelHandlerAdapter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelOutboundHandler</span> </span>{}
+</code></pre>
+<p>所有outbound方法也都是同样的delegate给ChannelHandlerContext, 以bind()方法为例:</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">bind</span><span class="hljs-params">(ChannelHandlerContext ctx, SocketAddress localAddress,
+        ChannelPromise promise)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    ctx.bind(localAddress, promise);
 }
 </code></pre>
-<p>然后几乎所有的方法,都在delegate之前多加一句对leak.record()的调用:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getDouble</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span> </span>{
-    leak.record();
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">super</span>.getDouble(index);
-}
+<h1 id="channelduplexhandler">类ChannelDuplexHandler</h1>
+<p>类ChannelDuplexHandler同时实现了ChannelInboundHandler和ChannelOutboundHandler:</p>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ChannelDuplexHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">ChannelInboundHandlerAdapter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ChannelOutboundHandler</span> </span>{}
 </code></pre>
-<p>然后所有的slice()/duplicate()/readSlice()/order()方法都在返回新的ByteBuf前再次包装成AdvancedLeakAwareByteBuf:</p>
-<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">public</span> ByteBuf <span class="hljs-title">slice</span><span class="hljs-params">()</span> </span>{
-    leak.record();
-    <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title">AdvancedLeakAwareByteBuf</span><span class="hljs-params">(<span class="hljs-keyword">super</span>.slice()</span>, leak)</span>;
-}
-</code></pre>
-<h2 id="simpleleakawarebytebuf">SimpleLeakAwareByteBuf</h2>
-<p>实现方式基本和AdvancedLeakAwareByteBuf相似,但是只有一个方法添加了对leak.record()的调用:</p>
-<ul>
-<li>order(ByteOrder endianness)</li>
-</ul>
+<p>方式方式也是一样的delegate给ChannelHandlerContext.</p>
+<h1 id="">总结</h1>
+<p>这三个Adapter类的实现非常简单, 所有方法要不就是空实现, 要不就delegate给ChannelHandlerContext.</p>
 
                     
                     </section>
@@ -1058,10 +1050,10 @@
         </div>
 
         
-        <a href="../buffer/class_ResourceLeakDetector.html" class="navigation navigation-prev " aria-label="Previous page: 类ResourceLeakDetector"><i class="fa fa-angle-left"></i></a>
+        <a href="../channel/interface_ChannelHandler.html" class="navigation navigation-prev " aria-label="Previous page: ChannelHandler相关接口"><i class="fa fa-angle-left"></i></a>
         
         
-        <a href="../buffer/zero_copy.html" class="navigation navigation-next " aria-label="Next page: Zero Copy"><i class="fa fa-angle-right"></i></a>
+        <a href="../channel/class_ChannelInitializer.html" class="navigation navigation-next " aria-label="Next page: 类ChannelInitializer"><i class="fa fa-angle-right"></i></a>
         
     </div>
 </div>
